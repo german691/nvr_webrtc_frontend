@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import { Box, HStack, IconButton } from "@chakra-ui/react";
+import { useEffect, useRef, useState, useMemo } from "react";
+import { Box, HStack, IconButton, Popover, Text, VStack, Portal } from "@chakra-ui/react";
 import {
   Camera,
   ZoomIn,
@@ -9,9 +9,15 @@ import {
   Maximize,
   Minimize,
   Focus,
+  Settings,
 } from "lucide-react";
+import { useDispatch } from "react-redux";
+import { toggleStream } from "../store/slices/cameraSlice";
+import { StreamSettings } from "./StreamSettings.jsx";
+import { UvcControlPanel } from "./UvcControlPanel.jsx";
 
-const WebRTCPlayer = ({ url }) => {
+const WebRTCPlayer = ({ url, camera }) => {
+  const dispatch = useDispatch();
   const containerRef = useRef(null);
   const videoRef = useRef(null);
   const pcRef = useRef(null);
@@ -27,6 +33,91 @@ const WebRTCPlayer = ({ url }) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const dragStart = useRef({ x: 0, y: 0 });
+
+  // Popover open states to manage controls visibility in fullscreen
+  const [isStreamSettingsOpen, setIsStreamSettingsOpen] = useState(false);
+  const [isUvcSettingsOpen, setIsUvcSettingsOpen] = useState(false);
+
+  const isAnyPopoverOpen = isStreamSettingsOpen || isUvcSettingsOpen;
+
+  // Stream options sorting and selectors
+  const sortedResolutions = useMemo(() => {
+    if (!camera?.modes) return ["1920x1080", "1280x720"];
+    const rawResolutions = camera.modes.map((m) =>
+      typeof m === "object" ? m.resolution : m
+    );
+    return [...new Set(rawResolutions)].sort((a, b) => {
+      const [wA, hA] = a.trim().split("x").map(Number);
+      const [wB, hB] = b.trim().split("x").map(Number);
+      return wA - wB || hA - hB;
+    });
+  }, [camera?.modes]);
+
+  const sortedFps = useMemo(() => {
+    if (!camera?.modes) return ["30", "24", "60"];
+    let rawFps = [];
+    camera.modes.forEach((m) => {
+      if (typeof m === "object" && m.fps) {
+        if (Array.isArray(m.fps)) {
+          rawFps.push(...m.fps);
+        } else {
+          rawFps.push(m.fps);
+        }
+      }
+    });
+    if (rawFps.length === 0) {
+      rawFps = [30, 24, 60];
+    }
+    return [...new Set(rawFps.map(String))].sort(
+      (a, b) => Number(a) - Number(b)
+    );
+  }, [camera?.modes]);
+
+  const displayRes = camera?.active_settings?.resolution || "1920x1080";
+  const displayFps = camera?.active_settings?.fps || "30";
+  const displayBitrate = camera?.active_settings?.bitrate || "2M";
+
+  const handleSetRes = (newRes) => {
+    if (!camera) return;
+    dispatch(
+      toggleStream({
+        dev: camera.dev,
+        resolution: newRes,
+        fps: displayFps,
+        bitrate: displayBitrate,
+        cleanBitrate: displayBitrate,
+        action: "start",
+      })
+    );
+  };
+
+  const handleSetFps = (newFps) => {
+    if (!camera) return;
+    dispatch(
+      toggleStream({
+        dev: camera.dev,
+        resolution: displayRes,
+        fps: newFps,
+        bitrate: displayBitrate,
+        cleanBitrate: displayBitrate,
+        action: "start",
+      })
+    );
+  };
+
+  const handleSetBitrate = (newBitrate) => {
+    if (!camera) return;
+    dispatch(
+      toggleStream({
+        dev: camera.dev,
+        resolution: displayRes,
+        fps: displayFps,
+        bitrate: newBitrate,
+        cleanBitrate: newBitrate,
+        action: "start",
+      })
+    );
+  };
 
   // --- WEBRTC ---
   useEffect(() => {
@@ -100,6 +191,20 @@ const WebRTCPlayer = ({ url }) => {
       if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
     };
   }, []);
+
+  // Evitar que los controles se oculten cuando hay algún popover abierto en pantalla completa
+  useEffect(() => {
+    if (isAnyPopoverOpen) {
+      setShowControls(true);
+      if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
+    } else if (isFullscreen) {
+      if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
+      controlsTimeoutRef.current = setTimeout(
+        () => setShowControls(false),
+        1000,
+      );
+    }
+  }, [isAnyPopoverOpen, isFullscreen]);
 
   // --- RECORDING ---
   const handleStartRecording = async () => {
@@ -250,7 +355,7 @@ const WebRTCPlayer = ({ url }) => {
     }
 
     // 2. Lógica de auto-ocultado de controles en FullScreen
-    if (isFullscreen) {
+    if (isFullscreen && !isAnyPopoverOpen) {
       setShowControls(true);
       if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
       controlsTimeoutRef.current = setTimeout(
@@ -310,13 +415,16 @@ const WebRTCPlayer = ({ url }) => {
 
       <HStack
         position="absolute"
-        bottom={2}
-        right={2}
-        bg="whiteAlpha.900"
-        p={1}
-        borderRadius="md"
-        shadow="sm"
-        gap={1}
+        bottom={3}
+        right={3}
+        bg="whiteAlpha.800"
+        backdropFilter="blur(8px)"
+        p={1.5}
+        borderRadius="xl"
+        borderWidth="1px"
+        borderColor="whiteAlpha.350"
+        shadow="md"
+        gap={1.5}
         zIndex={10}
         opacity={showControls ? 1 : 0}
         pointerEvents={showControls ? "auto" : "none"}
@@ -341,13 +449,86 @@ const WebRTCPlayer = ({ url }) => {
           }
         }}
       >
+        {camera && (
+          <UvcControlPanel
+            cameraDev={camera.dev}
+            size="xs"
+            variant="ghost"
+            borderRadius="lg"
+            buttonProps={{
+              _hover: { bg: "blackAlpha.100" }
+            }}
+            onOpenChange={setIsUvcSettingsOpen}
+          />
+        )}
+
+        {camera && (
+          <Popover.Root
+            open={isStreamSettingsOpen}
+            onOpenChange={(details) => setIsStreamSettingsOpen(details.open)}
+            portalled={true}
+            unmountOnExit={false}
+          >
+            <Popover.Trigger asChild>
+              <IconButton
+                size="xs"
+                variant="ghost"
+                borderRadius="lg"
+                colorPalette="gray"
+                aria-label="Configuración de transmisión"
+                title="Configuración de transmisión"
+                transition="all 0.2s"
+                _hover={{ bg: "blackAlpha.100" }}
+              >
+                <Settings size={16} />
+              </IconButton>
+            </Popover.Trigger>
+            <Portal>
+              <Popover.Positioner zIndex={1600}>
+                <Popover.Content
+                  bg="white"
+                  borderColor="gray.200"
+                  shadow="lg"
+                  p={3}
+                  borderRadius="xl"
+                  zIndex="popover"
+                  width="280px"
+                >
+                  <Popover.Arrow />
+                  <Popover.Body p={0}>
+                    <Text fontSize="xs" fontWeight="bold" color="gray.700" mb={3} textAlign="left">
+                      Ajustes de Transmisión
+                    </Text>
+                    <VStack align="stretch" gap={3}>
+                      <StreamSettings
+                        resolutions={sortedResolutions}
+                        fpsOptions={sortedFps}
+                        displayRes={displayRes}
+                        displayFps={displayFps}
+                        displayBitrate={displayBitrate}
+                        setRes={handleSetRes}
+                        setFps={handleSetFps}
+                        setBitrate={handleSetBitrate}
+                        disabled={false}
+                      />
+                    </VStack>
+                  </Popover.Body>
+                </Popover.Content>
+              </Popover.Positioner>
+            </Portal>
+          </Popover.Root>
+        )}
+
         <IconButton
           size="xs"
           variant="ghost"
+          borderRadius="lg"
           colorPalette="gray"
           aria-label="Pantalla Completa"
           title="Pantalla Completa"
           onClick={toggleFullScreen}
+          transition="all 0.2s"
+          _hover={{ bg: "blackAlpha.100" }}
         >
           {isFullscreen ? <Minimize size={16} /> : <Maximize size={16} />}
         </IconButton>
@@ -355,10 +536,13 @@ const WebRTCPlayer = ({ url }) => {
         <IconButton
           size="xs"
           variant="ghost"
+          borderRadius="lg"
           colorPalette="gray"
           aria-label="Tomar Captura"
           title="Tomar Captura"
           onClick={handleScreenshot}
+          transition="all 0.2s"
+          _hover={{ bg: "blackAlpha.100" }}
         >
           <Camera size={16} />
         </IconButton>
@@ -366,11 +550,14 @@ const WebRTCPlayer = ({ url }) => {
         <IconButton
           size="xs"
           variant="ghost"
+          borderRadius="lg"
           colorPalette="gray"
           aria-label="Restablecer Zoom"
           title="Restablecer Zoom"
           onClick={handleResetZoom}
           disabled={scale === 1}
+          transition="all 0.2s"
+          _hover={{ bg: "blackAlpha.100" }}
         >
           <Focus size={16} />
         </IconButton>
@@ -378,11 +565,14 @@ const WebRTCPlayer = ({ url }) => {
         <IconButton
           size="xs"
           variant="ghost"
+          borderRadius="lg"
           colorPalette="gray"
           aria-label="Acercar"
           title="Acercar"
           onClick={handleZoomIn}
           disabled={scale >= 4}
+          transition="all 0.2s"
+          _hover={{ bg: "blackAlpha.100" }}
         >
           <ZoomIn size={16} />
         </IconButton>
@@ -390,21 +580,28 @@ const WebRTCPlayer = ({ url }) => {
         <IconButton
           size="xs"
           variant="ghost"
+          borderRadius="lg"
           colorPalette="gray"
           aria-label="Alejar"
           title="Alejar"
           onClick={handleZoomOut}
           disabled={scale <= 1}
+          transition="all 0.2s"
+          _hover={{ bg: "blackAlpha.100" }}
         >
           <ZoomOut size={16} />
         </IconButton>
 
         <IconButton
           size="xs"
+          borderRadius="lg"
           colorPalette={isRecording ? "red" : "blue"}
           aria-label={isRecording ? "Detener Grabación" : "Grabar"}
           title={isRecording ? "Detener Grabación" : "Grabar"}
           onClick={isRecording ? handleStopRecording : handleStartRecording}
+          transition="all 0.2s"
+          boxShadow={isRecording ? "0 0 10px rgba(239, 68, 68, 0.5)" : "none"}
+          _hover={{ opacity: 0.9 }}
         >
           {isRecording ? (
             <Square size={16} fill="currentColor" />

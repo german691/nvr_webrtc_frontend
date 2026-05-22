@@ -63,6 +63,7 @@ export const StreamSettings = ({
               <Select.Trigger
                 bg="white"
                 borderColor="gray.300"
+                borderRadius="lg"
                 _disabled={{ opacity: 0.6, cursor: "not-allowed" }}
               >
                 <Select.ValueText />
@@ -75,7 +76,8 @@ export const StreamSettings = ({
               <Select.Content
                 bg="white"
                 borderColor="gray.200"
-                shadow="sm"
+                shadow="md"
+                borderRadius="lg"
                 zIndex="popover"
               >
                 {resCollection.items.map((item) => (
@@ -108,6 +110,7 @@ export const StreamSettings = ({
               <Select.Trigger
                 bg="white"
                 borderColor="gray.300"
+                borderRadius="lg"
                 _disabled={{ opacity: 0.6, cursor: "not-allowed" }}
               >
                 <Select.ValueText />
@@ -120,7 +123,8 @@ export const StreamSettings = ({
               <Select.Content
                 bg="white"
                 borderColor="gray.200"
-                shadow="sm"
+                shadow="md"
+                borderRadius="lg"
                 zIndex="popover"
               >
                 {fpsCollection.items.map((item) => (
@@ -154,6 +158,7 @@ export const StreamSettings = ({
             <Select.Trigger
               bg="white"
               borderColor="gray.300"
+              borderRadius="lg"
               _disabled={{ opacity: 0.6, cursor: "not-allowed" }}
             >
               <Select.ValueText />
@@ -166,7 +171,8 @@ export const StreamSettings = ({
             <Select.Content
               bg="white"
               borderColor="gray.200"
-              shadow="sm"
+              shadow="md"
+              borderRadius="lg"
               zIndex="popover"
             >
               {bitrateCollection.items.map((item) => (

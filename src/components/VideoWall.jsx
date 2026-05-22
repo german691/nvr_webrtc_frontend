@@ -58,8 +58,8 @@ const VideoWall = () => {
       columns={getColumns()}
       h="100%"
       w="100%"
-      p={2}
-      gap={2}
+      p={1.5}
+      gap={1.5}
       bg="gray.100"
     >
       {activeCameras.map((cam) => (
@@ -68,32 +68,38 @@ const VideoWall = () => {
           position="relative"
           borderWidth="1px"
           borderColor="gray.200"
-          borderRadius="sm"
+          borderRadius="2xl"
           overflow="hidden"
-          bg="white"
-          role="group"
+          bg="black"
+          shadow="sm"
+          transition="all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
+          _hover={{
+            borderColor: "green.400",
+            boxShadow: "0 0 16px rgba(34, 197, 94, 0.25)",
+          }}
         >
-          <WebRTCPlayer url={cam.webrtc_url} />
+          <WebRTCPlayer url={cam.webrtc_url} camera={cam} />
 
           <Box
             position="absolute"
-            top={2}
-            left={2}
-            bg="blackAlpha.600"
+            top={3}
+            left={3}
+            bg="blackAlpha.700"
+            backdropFilter="blur(8px)"
             px={3}
-            py={1}
-            borderRadius="md"
+            py={1.5}
+            borderRadius="lg"
             pointerEvents="none"
             zIndex={5}
-            opacity={0.4}
-            _groupHover={{ opacity: 0.95 }}
+            opacity={0.8}
             transition="opacity 0.2s ease-in-out"
+            _groupHover={{ opacity: 0.95 }}
           >
             <Text fontSize="xs" fontWeight="bold" color="white">
               {cam.name || cam.dev}
             </Text>
             {cam.active_settings && (
-              <Text fontSize="2xs" color="gray.100" textTransform="uppercase">
+              <Text fontSize="3xs" color="gray.300" textTransform="uppercase" fontWeight="medium">
                 {cam.active_settings.resolution} @ {cam.active_settings.fps}FPS
                 | {cam.active_settings.bitrate}
               </Text>

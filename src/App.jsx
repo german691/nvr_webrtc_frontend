@@ -13,21 +13,41 @@ function App() {
   }, [dispatch]);
 
   return (
-    <Flex h="100vh" w="100vw" bg="gray.50" color="gray.900" overflow="hidden">
+    <Flex
+      h="100vh"
+      w="100vw"
+      bgGradient="to-br, gray.50, gray.150"
+      color="gray.900"
+      overflow="hidden"
+      p={2.5}
+      gap={2.5}
+    >
       <Box
-        w="fit"
         bg="white"
-        borderRightWidth="1px"
+        borderRadius="3xl"
+        borderWidth="1px"
         borderColor="gray.200"
         display="flex"
         flexDirection="column"
         zIndex={10}
+        overflow="hidden"
+        shadow="xs"
+        transition="all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
       >
-        <Box flex="1" overflowY="auto">
+        <Box flex="1" overflow="hidden" display="flex" flexDirection="column">
           <Sidebar />
         </Box>
       </Box>
-      <Box flex="1" bg="gray.100" position="relative" overflow="hidden">
+      <Box
+        flex="1"
+        bg="gray.100"
+        borderRadius="3xl"
+        borderWidth="1px"
+        borderColor="gray.200"
+        position="relative"
+        overflow="hidden"
+        shadow="xs"
+      >
         <VideoWall />
       </Box>
     </Flex>
