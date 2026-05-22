@@ -29,6 +29,7 @@ import {
   Terminal,
   XCircle,
   Trash2,
+  LogOut,
 } from "lucide-react";
 import CameraControlCard from "./CameraControlCard";
 import logoImg from "../assets/logoh.png";
@@ -43,6 +44,11 @@ const Sidebar = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   const dispatch = useDispatch();
+
+  const handleLogout = () => {
+    localStorage.removeItem("nvr_token");
+    window.location.reload();
+  };
 
   // Estados locales para la depuración de FFmpeg
   const [isFfmpegOpen, setIsFfmpegOpen] = useState(false);
@@ -338,7 +344,7 @@ const Sidebar = () => {
         </Box>
       </Box>
 
-      {/* Footer Fijo para Depuración FFmpeg */}
+      {/* Footer Fijo para Depuración FFmpeg y Logout */}
       <Box
         flexShrink={0}
         p={3}
@@ -349,7 +355,7 @@ const Sidebar = () => {
         zIndex={10}
       >
         {isCollapsed ? (
-          <Center>
+          <VStack gap={2} align="center">
             <Tooltip content="Estado FFmpeg" positioning={{ placement: "right" }} showArrow>
               <IconButton
                 size="sm"
@@ -363,23 +369,53 @@ const Sidebar = () => {
                 <Activity size={18} />
               </IconButton>
             </Tooltip>
-          </Center>
+            <Tooltip content="Cerrar sesión" positioning={{ placement: "right" }} showArrow>
+              <IconButton
+                id="logout-btn-collapsed"
+                size="sm"
+                variant="outline"
+                colorPalette="red"
+                borderRadius="xl"
+                aria-label="Cerrar sesión"
+                onClick={handleLogout}
+                _hover={{ bg: "red.50", borderColor: "red.300" }}
+              >
+                <LogOut size={18} />
+              </IconButton>
+            </Tooltip>
+          </VStack>
         ) : (
-          <Button
-            w="full"
-            variant="outline"
-            colorPalette="blue"
-            size="sm"
-            borderRadius="xl"
-            onClick={handleOpenDebug}
-            fontWeight="semibold"
-            justifyContent="center"
-            gap={2}
-            _hover={{ bg: "blue.50", borderColor: "blue.300" }}
-          >
-            <Activity size={16} />
-            <Text fontSize="xs">Estado FFmpeg</Text>
-          </Button>
+          <HStack w="full" gap={2}>
+            <Button
+              flex="1"
+              variant="outline"
+              colorPalette="blue"
+              size="sm"
+              borderRadius="xl"
+              onClick={handleOpenDebug}
+              fontWeight="semibold"
+              justifyContent="center"
+              gap={2}
+              _hover={{ bg: "blue.50", borderColor: "blue.300" }}
+            >
+              <Activity size={16} />
+              <Text fontSize="xs">Estado FFmpeg</Text>
+            </Button>
+            <Tooltip content="Cerrar sesión" showArrow>
+              <IconButton
+                id="logout-btn"
+                size="sm"
+                variant="outline"
+                colorPalette="red"
+                borderRadius="xl"
+                aria-label="Cerrar sesión"
+                onClick={handleLogout}
+                _hover={{ bg: "red.50", borderColor: "red.300" }}
+              >
+                <LogOut size={16} />
+              </IconButton>
+            </Tooltip>
+          </HStack>
         )}
       </Box>
 

@@ -1,16 +1,26 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { fetchCameras } from "./store/slices/cameraSlice";
 import { Box, Flex } from "@chakra-ui/react";
 import Sidebar from "./components/Sidebar";
 import VideoWall from "./components/VideoWall";
+import Login from "./components/Login";
 
 function App() {
   const dispatch = useDispatch();
+  const [isAuthenticated, setIsAuthenticated] = useState(
+    () => !!localStorage.getItem("nvr_token")
+  );
 
   useEffect(() => {
-    dispatch(fetchCameras());
-  }, [dispatch]);
+    if (isAuthenticated) {
+      dispatch(fetchCameras());
+    }
+  }, [dispatch, isAuthenticated]);
+
+  if (!isAuthenticated) {
+    return <Login onLoginSuccess={() => setIsAuthenticated(true)} />;
+  }
 
   return (
     <Flex
