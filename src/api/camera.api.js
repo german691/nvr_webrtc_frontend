@@ -49,4 +49,23 @@ export const cameraApi = {
     );
     return response.data;
   },
+
+  // Consulta el estado de los flujos de captura FFmpeg activos y su consumo
+  getFfmpegDebug: async () => {
+    const response = await axios.get(`${API_BASE_URL}/cameras/debug/ffmpeg`);
+    return response.data;
+  },
+
+  // Finaliza un proceso de stream específico por su PID
+  killFfmpegProcess: async (pid) => {
+    const response = await axios.post(`${API_BASE_URL}/cameras/debug/ffmpeg/kill`, { pid });
+    return response.data;
+  },
+
+  // Finaliza todas las transmisiones activas
+  killAllFfmpegProcesses: async () => {
+    const response = await axios.post(`${API_BASE_URL}/cameras/debug/ffmpeg/kill-all`);
+    return response.data;
+  },
 };
+

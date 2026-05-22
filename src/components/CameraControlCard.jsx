@@ -66,6 +66,7 @@ const CameraControlCard = ({ camera }) => {
   const [res, setRes] = useState(initialRes);
   const [fps, setFps] = useState(initialFps);
   const [bitrate, setBitrate] = useState(BITRATES[1].value);
+  const [isToggling, setIsToggling] = useState(false);
 
   const displayRes =
     camera.streaming && camera.active_settings?.resolution
@@ -80,68 +81,96 @@ const CameraControlCard = ({ camera }) => {
       ? camera.active_settings.bitrate
       : bitrate;
 
-  const handleSetRes = (newRes) => {
+  const handleSetRes = async (newRes) => {
     setRes(newRes);
     if (camera.streaming) {
-      dispatch(
-        toggleStream({
-          dev: camera.dev,
-          resolution: newRes,
-          fps: displayFps,
-          bitrate: displayBitrate,
-          cleanBitrate: displayBitrate,
-          action: "start",
-        })
-      );
+      setIsToggling(true);
+      try {
+        await dispatch(
+          toggleStream({
+            dev: camera.dev,
+            resolution: newRes,
+            fps: displayFps,
+            bitrate: displayBitrate,
+            cleanBitrate: displayBitrate,
+            action: "start",
+          })
+        ).unwrap();
+      } catch (error) {
+        console.error("Failed to set resolution:", error);
+      } finally {
+        setIsToggling(false);
+      }
     }
   };
 
-  const handleSetFps = (newFps) => {
+  const handleSetFps = async (newFps) => {
     setFps(newFps);
     if (camera.streaming) {
-      dispatch(
-        toggleStream({
-          dev: camera.dev,
-          resolution: displayRes,
-          fps: newFps,
-          bitrate: displayBitrate,
-          cleanBitrate: displayBitrate,
-          action: "start",
-        })
-      );
+      setIsToggling(true);
+      try {
+        await dispatch(
+          toggleStream({
+            dev: camera.dev,
+            resolution: displayRes,
+            fps: newFps,
+            bitrate: displayBitrate,
+            cleanBitrate: displayBitrate,
+            action: "start",
+          })
+        ).unwrap();
+      } catch (error) {
+        console.error("Failed to set FPS:", error);
+      } finally {
+        setIsToggling(false);
+      }
     }
   };
 
-  const handleSetBitrate = (newBitrate) => {
+  const handleSetBitrate = async (newBitrate) => {
     setBitrate(newBitrate);
     if (camera.streaming) {
-      dispatch(
-        toggleStream({
-          dev: camera.dev,
-          resolution: displayRes,
-          fps: displayFps,
-          bitrate: newBitrate,
-          cleanBitrate: newBitrate,
-          action: "start",
-        })
-      );
+      setIsToggling(true);
+      try {
+        await dispatch(
+          toggleStream({
+            dev: camera.dev,
+            resolution: displayRes,
+            fps: displayFps,
+            bitrate: newBitrate,
+            cleanBitrate: newBitrate,
+            action: "start",
+          })
+        ).unwrap();
+      } catch (error) {
+        console.error("Failed to set bitrate:", error);
+      } finally {
+        setIsToggling(false);
+      }
     }
   };
 
-  const handleToggle = () => {
-    if (camera.streaming) {
-      dispatch(toggleStream({ dev: camera.dev, action: "stop" }));
-    } else {
-      dispatch(
-        toggleStream({
-          dev: camera.dev,
-          resolution: displayRes,
-          fps: displayFps,
-          bitrate: displayBitrate,
-          cleanBitrate: displayBitrate,
-          action: "start",
-        }),
-      );
+  const handleToggle = async () => {
+    setIsToggling(true);
+    try {
+      if (camera.streaming) {
+        await dispatch(toggleStream({ dev: camera.dev, action: "stop" })).unwrap();
+      } else {
+        await dispatch(
+          toggleStream({
+            dev: camera.dev,
+            resolution: displayRes,
+            fps: displayFps,
+            bitrate: displayBitrate,
+            cleanBitrate: displayBitrate,
+            action: "start",
+          })
+        ).unwrap();
+      }
+    } catch (error) {
+      console.error("Failed to toggle stream:", error);
+    } finally {
+      setIsToggling(false);
     }
   };
 
@@ -190,6 +219,8 @@ const CameraControlCard = ({ camera }) => {
             fontWeight="semibold"
             transition="all 0.2s"
             _hover={{ opacity: 0.9 }}
+            loading={isToggling}
+            loadingText={camera.streaming ? "Apagando..." : "Conectando..."}
           >
             {camera.streaming ? "Apagar" : "Visualizar"}
           </Button>
@@ -206,6 +237,7 @@ const CameraControlCard = ({ camera }) => {
                 title="Configuración de transmisión"
                 transition="all 0.2s"
                 _hover={{ bg: "gray.50", borderColor: "gray.300" }}
+                disabled={isToggling}
               >
                 <Settings size={16} />
               </IconButton>
@@ -240,7 +272,7 @@ const CameraControlCard = ({ camera }) => {
                         setRes={handleSetRes}
                         setFps={handleSetFps}
                         setBitrate={handleSetBitrate}
-                        disabled={false}
+                        disabled={isToggling}
                       />
                     </VStack>
                   </Popover.Body>
@@ -249,7 +281,7 @@ const CameraControlCard = ({ camera }) => {
             </Portal>
           </Popover.Root>
 
-          <UvcControlPanel cameraDev={camera.dev} />
+          <UvcControlPanel cameraDev={camera.dev} buttonProps={{ disabled: isToggling }} />
         </Flex>
       </VStack>
     </Box>

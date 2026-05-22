@@ -37,6 +37,7 @@ const WebRTCPlayer = ({ url, camera }) => {
   // Popover open states to manage controls visibility in fullscreen
   const [isStreamSettingsOpen, setIsStreamSettingsOpen] = useState(false);
   const [isUvcSettingsOpen, setIsUvcSettingsOpen] = useState(false);
+  const [isToggling, setIsToggling] = useState(false);
 
   const isAnyPopoverOpen = isStreamSettingsOpen || isUvcSettingsOpen;
 
@@ -77,46 +78,67 @@ const WebRTCPlayer = ({ url, camera }) => {
   const displayFps = camera?.active_settings?.fps || "30";
   const displayBitrate = camera?.active_settings?.bitrate || "2M";
 
-  const handleSetRes = (newRes) => {
+  const handleSetRes = async (newRes) => {
     if (!camera) return;
-    dispatch(
-      toggleStream({
-        dev: camera.dev,
-        resolution: newRes,
-        fps: displayFps,
-        bitrate: displayBitrate,
-        cleanBitrate: displayBitrate,
-        action: "start",
-      })
-    );
+    setIsToggling(true);
+    try {
+      await dispatch(
+        toggleStream({
+          dev: camera.dev,
+          resolution: newRes,
+          fps: displayFps,
+          bitrate: displayBitrate,
+          cleanBitrate: displayBitrate,
+          action: "start",
+        })
+      ).unwrap();
+    } catch (error) {
+      console.error("Failed to set resolution:", error);
+    } finally {
+      setIsToggling(false);
+    }
   };
 
-  const handleSetFps = (newFps) => {
+  const handleSetFps = async (newFps) => {
     if (!camera) return;
-    dispatch(
-      toggleStream({
-        dev: camera.dev,
-        resolution: displayRes,
-        fps: newFps,
-        bitrate: displayBitrate,
-        cleanBitrate: displayBitrate,
-        action: "start",
-      })
-    );
+    setIsToggling(true);
+    try {
+      await dispatch(
+        toggleStream({
+          dev: camera.dev,
+          resolution: displayRes,
+          fps: newFps,
+          bitrate: displayBitrate,
+          cleanBitrate: displayBitrate,
+          action: "start",
+        })
+      ).unwrap();
+    } catch (error) {
+      console.error("Failed to set FPS:", error);
+    } finally {
+      setIsToggling(false);
+    }
   };
 
-  const handleSetBitrate = (newBitrate) => {
+  const handleSetBitrate = async (newBitrate) => {
     if (!camera) return;
-    dispatch(
-      toggleStream({
-        dev: camera.dev,
-        resolution: displayRes,
-        fps: displayFps,
-        bitrate: newBitrate,
-        cleanBitrate: newBitrate,
-        action: "start",
-      })
-    );
+    setIsToggling(true);
+    try {
+      await dispatch(
+        toggleStream({
+          dev: camera.dev,
+          resolution: displayRes,
+          fps: displayFps,
+          bitrate: newBitrate,
+          cleanBitrate: newBitrate,
+          action: "start",
+        })
+      ).unwrap();
+    } catch (error) {
+      console.error("Failed to set bitrate:", error);
+    } finally {
+      setIsToggling(false);
+    }
   };
 
   // --- WEBRTC ---
@@ -519,7 +541,7 @@ const WebRTCPlayer = ({ url, camera }) => {
                         setRes={handleSetRes}
                         setFps={handleSetFps}
                         setBitrate={handleSetBitrate}
-                        disabled={false}
+                        disabled={isToggling}
                       />
                     </VStack>
                   </Popover.Body>
