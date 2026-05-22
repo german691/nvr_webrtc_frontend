@@ -121,6 +121,8 @@ const WebRTCPlayer = ({ url, camera }) => {
 
   // --- WEBRTC ---
   useEffect(() => {
+    if (!url) return;
+
     let pc = null;
 
     const startWebRTC = async () => {
@@ -161,8 +163,16 @@ const WebRTCPlayer = ({ url, camera }) => {
 
     return () => {
       if (pc) pc.close();
+      if (videoRef.current) {
+        videoRef.current.srcObject = null;
+      }
     };
-  }, [url]);
+  }, [
+    url,
+    camera?.active_settings?.resolution,
+    camera?.active_settings?.fps,
+    camera?.active_settings?.bitrate,
+  ]);
 
   // --- FULLSCREEN EVENT LISTENER & AUTO-HIDE CONTROLS ---
   useEffect(() => {

@@ -80,6 +80,54 @@ const CameraControlCard = ({ camera }) => {
       ? camera.active_settings.bitrate
       : bitrate;
 
+  const handleSetRes = (newRes) => {
+    setRes(newRes);
+    if (camera.streaming) {
+      dispatch(
+        toggleStream({
+          dev: camera.dev,
+          resolution: newRes,
+          fps: displayFps,
+          bitrate: displayBitrate,
+          cleanBitrate: displayBitrate,
+          action: "start",
+        })
+      );
+    }
+  };
+
+  const handleSetFps = (newFps) => {
+    setFps(newFps);
+    if (camera.streaming) {
+      dispatch(
+        toggleStream({
+          dev: camera.dev,
+          resolution: displayRes,
+          fps: newFps,
+          bitrate: displayBitrate,
+          cleanBitrate: displayBitrate,
+          action: "start",
+        })
+      );
+    }
+  };
+
+  const handleSetBitrate = (newBitrate) => {
+    setBitrate(newBitrate);
+    if (camera.streaming) {
+      dispatch(
+        toggleStream({
+          dev: camera.dev,
+          resolution: displayRes,
+          fps: displayFps,
+          bitrate: newBitrate,
+          cleanBitrate: newBitrate,
+          action: "start",
+        })
+      );
+    }
+  };
+
   const handleToggle = () => {
     if (camera.streaming) {
       dispatch(toggleStream({ dev: camera.dev, action: "stop" }));
@@ -189,10 +237,10 @@ const CameraControlCard = ({ camera }) => {
                         displayRes={displayRes}
                         displayFps={displayFps}
                         displayBitrate={displayBitrate}
-                        setRes={setRes}
-                        setFps={setFps}
-                        setBitrate={setBitrate}
-                        disabled={camera.streaming}
+                        setRes={handleSetRes}
+                        setFps={handleSetFps}
+                        setBitrate={handleSetBitrate}
+                        disabled={false}
                       />
                     </VStack>
                   </Popover.Body>
