@@ -12,9 +12,11 @@ import {
   HStack,
 } from "@chakra-ui/react";
 import { useSelector } from "react-redux";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Video } from "lucide-react";
 import CameraControlCard from "./CameraControlCard";
 import logoImg from "../assets/logoh.png";
+import { Tooltip } from "./ui/tooltip";
+import { formatDeviceName } from "../utils/camera.js";
 
 const Sidebar = () => {
   const { list, isLoading, error } = useSelector((state) => state.cameras);
@@ -64,17 +66,62 @@ const Sidebar = () => {
       overflow="hidden"
     >
       {isCollapsed && (
-        <Flex p={3} justify="center">
+        <Flex flexDir="column" align="center" gap={4} py={4} h="100%">
           <IconButton
             aria-label="Expandir barra lateral"
             size="sm"
             variant="ghost"
             color="gray.600"
-            _hover={{ bg: "gray.100", color: "gray.900" }}
+            _hover={{ bg: "gray.200", color: "gray.900" }}
             onClick={() => setIsCollapsed(false)}
           >
             <ChevronRight size={20} />
           </IconButton>
+
+          <VStack gap={4} w="full" align="center" mt={2} overflowY="auto" flex="1" px={2}>
+            {list.map((cam) => {
+              const isStreaming = cam.streaming;
+              const titleText = `${formatDeviceName(cam.dev)} - ${
+                isStreaming ? "Transmitiendo" : "En Espera"
+              }`;
+              return (
+                <Tooltip key={cam.dev} content={titleText} positioning={{ placement: "right" }} showArrow>
+                  <Box
+                    position="relative"
+                    p={2.5}
+                    borderRadius="full"
+                    bg={isStreaming ? "green.50" : "gray.50"}
+                    borderWidth="2px"
+                    borderColor={isStreaming ? "green.500" : "gray.300"}
+                    color={isStreaming ? "green.600" : "gray.500"}
+                    cursor="pointer"
+                    onClick={() => setIsCollapsed(false)}
+                    transition="all 0.2s"
+                    _hover={{
+                      transform: "scale(1.1)",
+                      borderColor: isStreaming ? "green.600" : "gray.400",
+                      bg: isStreaming ? "green.100" : "gray.100",
+                    }}
+                  >
+                    <Video size={18} />
+                    {isStreaming && (
+                      <Box
+                        position="absolute"
+                        top="0"
+                        right="0"
+                        w="2.5"
+                        h="2.5"
+                        bg="red.500"
+                        borderRadius="full"
+                        borderWidth="1.5px"
+                        borderColor="white"
+                      />
+                    )}
+                  </Box>
+                </Tooltip>
+              );
+            })}
+          </VStack>
         </Flex>
       )}
 

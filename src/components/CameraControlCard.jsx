@@ -7,12 +7,15 @@ import {
   Badge,
   Button,
   Flex,
+  IconButton,
+  Popover,
 } from "@chakra-ui/react";
 import { useDispatch } from "react-redux";
 import { toggleStream } from "../store/slices/cameraSlice";
 import { formatDeviceName, BITRATES } from "../utils/camera.js";
 import { UvcControlPanel } from "./UvcControlPanel.jsx";
 import { StreamSettings } from "./StreamSettings.jsx";
+import { Settings } from "lucide-react";
 
 const CameraControlCard = ({ camera }) => {
   const dispatch = useDispatch();
@@ -116,27 +119,60 @@ const CameraControlCard = ({ camera }) => {
       </HStack>
 
       <VStack align="stretch" gap={3}>
-        <StreamSettings
-          resolutions={sortedResolutions}
-          fpsOptions={sortedFps}
-          displayRes={displayRes}
-          displayFps={displayFps}
-          displayBitrate={displayBitrate}
-          setRes={setRes}
-          setFps={setFps}
-          setBitrate={setBitrate}
-          disabled={camera.streaming}
-        />
-
-        <Flex gap={2} flexDir="column">
+        <Flex gap={2} align="center">
           <Button
+            flex="1"
             variant="subtle"
             size="sm"
             colorPalette={camera.streaming ? "green" : "blue"}
             onClick={handleToggle}
           >
-            {camera.streaming ? "Detener Stream" : "Visualizar"}
+            {camera.streaming ? "Apagar" : "Visualizar"}
           </Button>
+
+          <Popover.Root portalled={true} unmountOnExit={false}>
+            <Popover.Trigger asChild>
+              <IconButton
+                size="sm"
+                variant="outline"
+                colorPalette="gray"
+                aria-label="Configuración de transmisión"
+                title="Configuración de transmisión"
+              >
+                <Settings size={16} />
+              </IconButton>
+            </Popover.Trigger>
+            <Popover.Positioner>
+              <Popover.Content
+                bg="white"
+                borderColor="gray.200"
+                shadow="md"
+                p={4}
+                borderRadius="md"
+                zIndex="popover"
+              >
+                <Popover.Arrow />
+                <Popover.Body p={0}>
+                  <Text fontSize="xs" fontWeight="bold" color="gray.700" mb={3}>
+                    Ajustes de Transmisión
+                  </Text>
+                  <VStack align="stretch" gap={3}>
+                    <StreamSettings
+                      resolutions={sortedResolutions}
+                      fpsOptions={sortedFps}
+                      displayRes={displayRes}
+                      displayFps={displayFps}
+                      displayBitrate={displayBitrate}
+                      setRes={setRes}
+                      setFps={setFps}
+                      setBitrate={setBitrate}
+                      disabled={camera.streaming}
+                    />
+                  </VStack>
+                </Popover.Body>
+              </Popover.Content>
+            </Popover.Positioner>
+          </Popover.Root>
 
           <UvcControlPanel cameraDev={camera.dev} />
         </Flex>

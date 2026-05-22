@@ -71,6 +71,7 @@ const VideoWall = () => {
           borderRadius="sm"
           overflow="hidden"
           bg="white"
+          role="group"
         >
           <WebRTCPlayer url={cam.webrtc_url} />
 
@@ -78,18 +79,21 @@ const VideoWall = () => {
             position="absolute"
             top={2}
             left={2}
-            bg="whiteAlpha.900"
+            bg="blackAlpha.600"
             px={3}
             py={1}
             borderRadius="md"
             pointerEvents="none"
             zIndex={5}
+            opacity={0.4}
+            _groupHover={{ opacity: 0.95 }}
+            transition="opacity 0.2s ease-in-out"
           >
-            <Text fontSize="sm" fontWeight="bold" color="gray.800">
+            <Text fontSize="xs" fontWeight="bold" color="white">
               {cam.name || cam.dev}
             </Text>
             {cam.active_settings && (
-              <Text fontSize="2xs" color="gray.600" textTransform="uppercase">
+              <Text fontSize="2xs" color="gray.100" textTransform="uppercase">
                 {cam.active_settings.resolution} @ {cam.active_settings.fps}FPS
                 | {cam.active_settings.bitrate}
               </Text>

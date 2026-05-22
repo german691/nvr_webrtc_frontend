@@ -10,8 +10,11 @@ import {
   HStack,
   Button,
   Separator,
+  IconButton,
+  Popover,
 } from "@chakra-ui/react";
 import { cameraApi } from "../api/camera.api";
+import { SlidersHorizontal } from "lucide-react";
 
 export const UvcControlPanel = ({ cameraDev }) => {
   const [hwControls, setHwControls] = useState([]);
@@ -34,11 +37,11 @@ export const UvcControlPanel = ({ cameraDev }) => {
     }
   };
 
-  const handleToggle = () => {
-    if (!isOpen) {
+  const handleOpenChange = (details) => {
+    setIsOpen(details.open);
+    if (details.open) {
       fetchHardwareControls();
     }
-    setIsOpen(!isOpen);
   };
 
   const handleLocalChange = (controlName, newValue) => {
@@ -99,216 +102,225 @@ export const UvcControlPanel = ({ cameraDev }) => {
   };
 
   return (
-    <Box>
-      <Button
-        width="100%"
-        size="sm"
-        variant="outline"
-        colorPalette="gray"
-        onClick={handleToggle}
-      >
-        {isOpen ? "Ocultar ajustes de video" : "Ver ajustes de video"}
-      </Button>
-
-      {isOpen && (
-        <Box
-          mt={2}
-          p={3}
-          bg="white"
-          borderWidth="1px"
-          borderColor="gray.200"
-          borderRadius="md"
+    <Popover.Root open={isOpen} onOpenChange={handleOpenChange} portalled={true} unmountOnExit={false}>
+      <Popover.Trigger asChild>
+        <IconButton
+          size="sm"
+          variant="outline"
+          colorPalette="gray"
+          aria-label="Ajustes de video"
+          title="Ajustes de video"
         >
-          {isLoadingControls ? (
-            <Flex
-              justify="center"
-              align="center"
-              py={4}
-              direction="column"
-              gap={3}
-            >
-              <Spinner size="md" colorPalette="blue" />
-              <Text fontSize="sm" color="gray.500">
-                Leyendo microchip...
-              </Text>
-            </Flex>
-          ) : hwControls.length === 0 ? (
-            <Text fontSize="sm" color="gray.500" textAlign="center" py={2}>
-              La cámara no expone controles UVC
+          <SlidersHorizontal size={16} />
+        </IconButton>
+      </Popover.Trigger>
+      <Popover.Positioner>
+        <Popover.Content
+          bg="white"
+          borderColor="gray.200"
+          shadow="md"
+          p={4}
+          borderRadius="md"
+          zIndex="popover"
+          width="320px"
+        >
+          <Popover.Arrow />
+          <Popover.Body p={0}>
+            <Text fontSize="xs" fontWeight="bold" color="gray.700" mb={3}>
+              Ajustes de Video
             </Text>
-          ) : (
-            <VStack align="stretch" gap={3}>
-              {/* Sección Especial: Modo Blanco y Negro */}
-              {saturationCtrl && (
-                <Box
-                  bg="gray.50"
-                  p={2}
-                  borderRadius="sm"
-                  borderWidth="1px"
-                  borderColor="gray.200"
-                >
-                  <Flex justify="space-between" align="center">
-                    <Text fontSize="xs" fontWeight="bold" color="gray.700">
-                      Modo Blanco y Negro
-                    </Text>
-                    <Switch.Root
-                      size="sm"
-                      colorPalette="blue"
-                      checked={isGrayscale}
-                      onCheckedChange={(e) => {
-                        const checked = e.checked;
-                        const newValue = checked
-                          ? 0
-                          : (saturationCtrl.default ?? 128);
-                        handleLocalChange("saturation", newValue);
-                        handleCommitChange("saturation", newValue);
-                      }}
-                    >
-                      <Switch.HiddenInput />
-                      <Switch.Control>
-                        <Switch.Thumb />
-                      </Switch.Control>
-                    </Switch.Root>
-                  </Flex>
-                </Box>
-              )}
 
-              {/* Sección Especial: Ajuste de Foco */}
-              {(focusAutoCtrl || focusAbsCtrl) && (
-                <Box
-                  bg="gray.50"
-                  p={2}
-                  borderRadius="sm"
-                  borderWidth="1px"
-                  borderColor="gray.200"
-                >
-                  <Text fontSize="xs" fontWeight="bold" color="gray.700" mb={2}>
-                    Ajuste de Foco
-                  </Text>
-                  <HStack gap={2}>
-                    {focusAutoCtrl && (
-                      <Button
-                        size="xs"
-                        flex="1"
-                        colorPalette={
-                          Number(focusAutoCtrl.value) === 1 ? "blue" : "gray"
-                        }
-                        variant={
-                          Number(focusAutoCtrl.value) === 1
-                            ? "solid"
-                            : "outline"
-                        }
-                        onClick={() => {
-                          const newVal =
-                            Number(focusAutoCtrl.value) === 1 ? 0 : 1;
-                          handleLocalChange(focusAutoCtrl.name, newVal);
-                          handleCommitChange(focusAutoCtrl.name, newVal);
+            {isLoadingControls ? (
+              <Flex
+                justify="center"
+                align="center"
+                py={4}
+                direction="column"
+                gap={3}
+              >
+                <Spinner size="md" colorPalette="blue" />
+                <Text fontSize="sm" color="gray.500">
+                  Leyendo microchip...
+                </Text>
+              </Flex>
+            ) : hwControls.length === 0 ? (
+              <Text fontSize="sm" color="gray.500" textAlign="center" py={2}>
+                La cámara no expone controles UVC
+              </Text>
+            ) : (
+              <VStack align="stretch" gap={3}>
+                {/* Sección Especial: Modo Blanco y Negro */}
+                {saturationCtrl && (
+                  <Box
+                    bg="gray.50"
+                    p={2}
+                    borderRadius="sm"
+                    borderWidth="1px"
+                    borderColor="gray.200"
+                  >
+                    <Flex justify="space-between" align="center">
+                      <Text fontSize="xs" fontWeight="bold" color="gray.700">
+                        Modo Blanco y Negro
+                      </Text>
+                      <Switch.Root
+                        size="sm"
+                        colorPalette="blue"
+                        checked={isGrayscale}
+                        onCheckedChange={(e) => {
+                          const checked = e.checked;
+                          const newValue = checked
+                            ? 0
+                            : (saturationCtrl.default ?? 128);
+                          handleLocalChange("saturation", newValue);
+                          handleCommitChange("saturation", newValue);
                         }}
                       >
-                        Automático
-                      </Button>
-                    )}
-                    {focusAbsCtrl && (
-                      <>
+                        <Switch.HiddenInput />
+                        <Switch.Control>
+                          <Switch.Thumb />
+                        </Switch.Control>
+                      </Switch.Root>
+                    </Flex>
+                  </Box>
+                )}
+
+                {/* Sección Especial: Ajuste de Foco */}
+                {(focusAutoCtrl || focusAbsCtrl) && (
+                  <Box
+                    bg="gray.50"
+                    p={2}
+                    borderRadius="sm"
+                    borderWidth="1px"
+                    borderColor="gray.200"
+                  >
+                    <Text fontSize="xs" fontWeight="bold" color="gray.700" mb={2}>
+                      Ajuste de Foco
+                    </Text>
+                    <HStack gap={2}>
+                      {focusAutoCtrl && (
                         <Button
                           size="xs"
                           flex="1"
-                          variant="outline"
-                          colorPalette="gray"
-                          onClick={() => {
-                            const minVal = focusAbsCtrl.min ?? 0;
-                            setAbsoluteFocus(minVal);
-                          }}
-                        >
-                          Mínimo
-                        </Button>
-                        <Button
-                          size="xs"
-                          flex="1"
-                          variant="outline"
-                          colorPalette="gray"
-                          onClick={() => {
-                            const maxVal = focusAbsCtrl.max ?? 250;
-                            setAbsoluteFocus(maxVal);
-                          }}
-                        >
-                          Máximo
-                        </Button>
-                      </>
-                    )}
-                  </HStack>
-                </Box>
-              )}
-
-              <Separator borderColor="gray.200" />
-
-              {/* Lista de Controles Numéricos Genéricos */}
-              <VStack align="stretch" gap={2}>
-                {hwControls
-                  .filter(
-                    (ctrl) =>
-                      !autoFocusNames.includes(ctrl.name) &&
-                      !absFocusNames.includes(ctrl.name),
-                  )
-                  .map((ctrl) => {
-                    const isSaturation = ctrl.name === "saturation";
-                    const isDisabled = isSaturation && isGrayscale;
-
-                    return (
-                      <Flex
-                        key={ctrl.name}
-                        justify="space-between"
-                        align="center"
-                      >
-                        <Text
-                          fontSize="xs"
-                          color={isDisabled ? "gray.400" : "gray.600"}
-                          textTransform="capitalize"
-                          fontWeight="medium"
-                        >
-                          {ctrl.name.replace(/_/g, " ")}
-                        </Text>
-                        <Input
-                          type="number"
-                          size="xs"
-                          w="70px"
-                          bg="white"
-                          color={isDisabled ? "gray.400" : "gray.800"}
-                          borderColor="gray.300"
-                          textAlign="center"
-                          value={ctrl.value}
-                          disabled={isDisabled}
-                          onChange={(e) =>
-                            handleLocalChange(ctrl.name, e.target.value)
+                          colorPalette={
+                            Number(focusAutoCtrl.value) === 1 ? "blue" : "gray"
                           }
-                          onBlur={() =>
-                            handleCommitChange(ctrl.name, ctrl.value)
+                          variant={
+                            Number(focusAutoCtrl.value) === 1
+                              ? "solid"
+                              : "outline"
                           }
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter")
-                              handleCommitChange(ctrl.name, ctrl.value);
+                          onClick={() => {
+                            const newVal =
+                              Number(focusAutoCtrl.value) === 1 ? 0 : 1;
+                            handleLocalChange(focusAutoCtrl.name, newVal);
+                            handleCommitChange(focusAutoCtrl.name, newVal);
                           }}
-                        />
-                      </Flex>
-                    );
-                  })}
+                        >
+                          Automático
+                        </Button>
+                      )}
+                      {focusAbsCtrl && (
+                        <>
+                          <Button
+                            size="xs"
+                            flex="1"
+                            variant="outline"
+                            colorPalette="gray"
+                            onClick={() => {
+                              const minVal = focusAbsCtrl.min ?? 0;
+                              setAbsoluteFocus(minVal);
+                            }}
+                          >
+                            Mínimo
+                          </Button>
+                          <Button
+                            size="xs"
+                            flex="1"
+                            variant="outline"
+                            colorPalette="gray"
+                            onClick={() => {
+                              const maxVal = focusAbsCtrl.max ?? 250;
+                              setAbsoluteFocus(maxVal);
+                            }}
+                          >
+                            Máximo
+                          </Button>
+                        </>
+                      )}
+                    </HStack>
+                  </Box>
+                )}
+
+                <Separator borderColor="gray.200" />
+
+                {/* Lista de Controles Numéricos Genéricos */}
+                <VStack align="stretch" gap={2}>
+                  {hwControls
+                    .filter(
+                      (ctrl) =>
+                        !autoFocusNames.includes(ctrl.name) &&
+                        !absFocusNames.includes(ctrl.name),
+                    )
+                    .map((ctrl) => {
+                      const isSaturation = ctrl.name === "saturation";
+                      const isDisabled = isSaturation && isGrayscale;
+
+                      return (
+                        <Flex
+                          key={ctrl.name}
+                          justify="space-between"
+                          align="center"
+                        >
+                          <Text
+                            fontSize="xs"
+                            color={isDisabled ? "gray.400" : "gray.600"}
+                            textTransform="capitalize"
+                            fontWeight="medium"
+                          >
+                            {ctrl.name.replace(/_/g, " ")}
+                          </Text>
+                          <Input
+                            type="number"
+                            size="xs"
+                            w="70px"
+                            bg="white"
+                            color={isDisabled ? "gray.400" : "gray.800"}
+                            borderColor="gray.300"
+                            textAlign="center"
+                            value={ctrl.value}
+                            disabled={isDisabled}
+                            onChange={(e) =>
+                              handleLocalChange(ctrl.name, e.target.value)
+                            }
+                            onBlur={() =>
+                              handleCommitChange(ctrl.name, ctrl.value)
+                            }
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter")
+                                handleCommitChange(ctrl.name, ctrl.value);
+                            }}
+                          />
+                        </Flex>
+                      );
+                    })}
+                </VStack>
+
+                <Button
+                  mt={2}
+                  size="xs"
+                  width="100%"
+                  colorPalette="gray"
+                  variant="outline"
+                  onClick={handleReset}
+                  _hover={{ bg: "gray.100" }}
+                >
+                  Restablecer valores por defecto
+                </Button>
               </VStack>
-
-              <Button
-                mt={2}
-                size="xs"
-                width="100%"
-                colorPalette="gray"
-                variant="outline"
-                onClick={handleReset}
-                _hover={{ bg: "gray.100" }}
-              >
-                Restablecer valores por defecto
-              </Button>
-            </VStack>
-          )}
-        </Box>
-      )}
-    </Box>
+            )}
+          </Popover.Body>
+        </Popover.Content>
+      </Popover.Positioner>
+    </Popover.Root>
   );
 };
