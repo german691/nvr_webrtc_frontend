@@ -15,7 +15,8 @@ import {
   NumberInput,
 } from "@chakra-ui/react";
 import { cameraApi } from "../api/camera.api";
-import { SlidersHorizontal } from "lucide-react";
+import { SlidersHorizontal, Minus, Plus } from "lucide-react";
+import { Tooltip } from "./ui/tooltip";
 
 export const UvcControlPanel = ({
   cameraDev,
@@ -202,7 +203,25 @@ export const UvcControlPanel = ({
                   La cámara no expone controles UVC
                 </Text>
               ) : (
-                <VStack align="stretch" gap={2.5}>
+                <VStack
+                  align="stretch"
+                  gap={2.5}
+                  maxH="380px"
+                  overflowY="auto"
+                  pr={1.5}
+                  css={{
+                    "&::-webkit-scrollbar": {
+                      width: "4px",
+                    },
+                    "&::-webkit-scrollbar-track": {
+                      background: "transparent",
+                    },
+                    "&::-webkit-scrollbar-thumb": {
+                      background: "#CBD5E0",
+                      borderRadius: "2px",
+                    },
+                  }}
+                >
                   {/* Sección Especial: Modo Blanco y Negro */}
                   {saturationCtrl && (
                     <Box
@@ -263,63 +282,69 @@ export const UvcControlPanel = ({
                           )}
                         </Flex>
 
-                        <HStack gap={2} mb={focusAbsCtrl ? 3 : 0}>
+                        <HStack gap={2} mb={focusAbsCtrl ? 3 : 0} width="100%">
                           {focusAutoCtrl && (
-                            <Button
-                              size="xs"
-                              flex="1"
-                              borderRadius="md"
-                              colorPalette={
-                                Number(focusAutoCtrl.value) === 1
-                                  ? "blue"
-                                  : "gray"
-                              }
-                              variant={
-                                Number(focusAutoCtrl.value) === 1
-                                  ? "solid"
-                                  : "outline"
-                              }
-                              onClick={() => {
-                                const newVal =
-                                  Number(focusAutoCtrl.value) === 1 ? 0 : 1;
-                                handleLocalChange(focusAutoCtrl.name, newVal);
-                                handleImmediateCommit(
-                                  focusAutoCtrl.name,
-                                  newVal,
-                                );
-                              }}
-                            >
-                              Automático
-                            </Button>
+                            <Tooltip content="Activar Enfoque Automático" showArrow>
+                              <Button
+                                size="xs"
+                                flex="1"
+                                borderRadius="md"
+                                colorPalette={
+                                  Number(focusAutoCtrl.value) === 1
+                                    ? "blue"
+                                    : "gray"
+                                }
+                                variant={
+                                  Number(focusAutoCtrl.value) === 1
+                                    ? "solid"
+                                    : "outline"
+                                }
+                                onClick={() => {
+                                  const newVal =
+                                    Number(focusAutoCtrl.value) === 1 ? 0 : 1;
+                                  handleLocalChange(focusAutoCtrl.name, newVal);
+                                  handleImmediateCommit(
+                                    focusAutoCtrl.name,
+                                    newVal,
+                                  );
+                                }}
+                              >
+                                Automático
+                              </Button>
+                            </Tooltip>
                           )}
                           {focusAbsCtrl && (
                             <>
-                              <Button
-                                size="xs"
-                                flex="0.5"
-                                variant="outline"
-                                borderRadius="md"
-                                colorPalette="gray"
-                                onClick={() => {
-                                  const minVal = focusAbsCtrl.min ?? 0;
-                                  setAbsoluteFocus(minVal);
-                                }}
-                              >
-                                Mín
-                              </Button>
-                              <Button
-                                size="xs"
-                                flex="0.5"
-                                variant="outline"
-                                borderRadius="md"
-                                colorPalette="gray"
-                                onClick={() => {
-                                  const maxVal = focusAbsCtrl.max ?? 250;
-                                  setAbsoluteFocus(maxVal);
-                                }}
-                              >
-                                Máx
-                              </Button>
+                              <Tooltip content="Enfoque Mínimo (Cercano / Macro)" showArrow>
+                                <IconButton
+                                  size="xs"
+                                  variant="outline"
+                                  borderRadius="md"
+                                  colorPalette="gray"
+                                  aria-label="Foco Mínimo"
+                                  onClick={() => {
+                                    const minVal = focusAbsCtrl.min ?? 0;
+                                    setAbsoluteFocus(minVal);
+                                  }}
+                                >
+                                  <Minus size={14} />
+                                </IconButton>
+                              </Tooltip>
+                              <Tooltip content="Enfoque Máximo (Infinito)" showArrow>
+                                <IconButton
+                                  size="xs"
+                                  variant="outline"
+                                  borderRadius="md"
+                                  colorPalette="gray"
+                                  aria-label="Foco Máximo"
+                                  onClick={() => {
+                                    const maxVal = focusAbsCtrl.max ?? 250;
+                                    setAbsoluteFocus(maxVal);
+                                  }}
+                                >
+                                  <Plus size={14} />
+                                </IconButton>
+                              </Tooltip>
                             </>
                           )}
                         </HStack>

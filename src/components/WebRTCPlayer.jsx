@@ -15,6 +15,7 @@ import { useDispatch } from "react-redux";
 import { toggleStream } from "../store/slices/cameraSlice";
 import { StreamSettings } from "./StreamSettings.jsx";
 import { UvcControlPanel } from "./UvcControlPanel.jsx";
+import { Tooltip } from "./ui/tooltip";
 
 const WebRTCPlayer = ({ url, camera }) => {
   const dispatch = useDispatch();
@@ -501,20 +502,21 @@ const WebRTCPlayer = ({ url, camera }) => {
             portalled={true}
             unmountOnExit={false}
           >
-            <Popover.Trigger asChild>
-              <IconButton
-                size="xs"
-                variant="ghost"
-                borderRadius="lg"
-                colorPalette="gray"
-                aria-label="Configuración de transmisión"
-                title="Configuración de transmisión"
-                transition="all 0.2s"
-                _hover={{ bg: "blackAlpha.100" }}
-              >
-                <Settings size={16} />
-              </IconButton>
-            </Popover.Trigger>
+            <Tooltip content="Ajustes de Transmisión (Resolución y FPS)" showArrow>
+              <Popover.Trigger asChild>
+                <IconButton
+                  size="xs"
+                  variant="ghost"
+                  borderRadius="lg"
+                  colorPalette="gray"
+                  aria-label="Configuración de transmisión"
+                  transition="all 0.2s"
+                  _hover={{ bg: "blackAlpha.100" }}
+                >
+                  <Settings size={16} />
+                </IconButton>
+              </Popover.Trigger>
+            </Tooltip>
             <Portal>
               <Popover.Positioner zIndex={1600}>
                 <Popover.Content
@@ -551,96 +553,102 @@ const WebRTCPlayer = ({ url, camera }) => {
           </Popover.Root>
         )}
 
-        <IconButton
-          size="xs"
-          variant="ghost"
-          borderRadius="lg"
-          colorPalette="gray"
-          aria-label="Pantalla Completa"
-          title="Pantalla Completa"
-          onClick={toggleFullScreen}
-          transition="all 0.2s"
-          _hover={{ bg: "blackAlpha.100" }}
-        >
-          {isFullscreen ? <Minimize size={16} /> : <Maximize size={16} />}
-        </IconButton>
+        <Tooltip content={isFullscreen ? "Salir de Pantalla Completa" : "Pantalla Completa"} showArrow>
+          <IconButton
+            size="xs"
+            variant="ghost"
+            borderRadius="lg"
+            colorPalette="gray"
+            aria-label="Pantalla Completa"
+            onClick={toggleFullScreen}
+            transition="all 0.2s"
+            _hover={{ bg: "blackAlpha.100" }}
+          >
+            {isFullscreen ? <Minimize size={16} /> : <Maximize size={16} />}
+          </IconButton>
+        </Tooltip>
 
-        <IconButton
-          size="xs"
-          variant="ghost"
-          borderRadius="lg"
-          colorPalette="gray"
-          aria-label="Tomar Captura"
-          title="Tomar Captura"
-          onClick={handleScreenshot}
-          transition="all 0.2s"
-          _hover={{ bg: "blackAlpha.100" }}
-        >
-          <Camera size={16} />
-        </IconButton>
+        <Tooltip content="Tomar Captura de Imagen" showArrow>
+          <IconButton
+            size="xs"
+            variant="ghost"
+            borderRadius="lg"
+            colorPalette="gray"
+            aria-label="Tomar Captura"
+            onClick={handleScreenshot}
+            transition="all 0.2s"
+            _hover={{ bg: "blackAlpha.100" }}
+          >
+            <Camera size={16} />
+          </IconButton>
+        </Tooltip>
 
-        <IconButton
-          size="xs"
-          variant="ghost"
-          borderRadius="lg"
-          colorPalette="gray"
-          aria-label="Restablecer Zoom"
-          title="Restablecer Zoom"
-          onClick={handleResetZoom}
-          disabled={scale === 1}
-          transition="all 0.2s"
-          _hover={{ bg: "blackAlpha.100" }}
-        >
-          <Focus size={16} />
-        </IconButton>
+        <Tooltip content="Restablecer Zoom y Paneo" showArrow>
+          <IconButton
+            size="xs"
+            variant="ghost"
+            borderRadius="lg"
+            colorPalette="gray"
+            aria-label="Restablecer Zoom"
+            onClick={handleResetZoom}
+            disabled={scale === 1}
+            transition="all 0.2s"
+            _hover={{ bg: "blackAlpha.100" }}
+          >
+            <Focus size={16} />
+          </IconButton>
+        </Tooltip>
 
-        <IconButton
-          size="xs"
-          variant="ghost"
-          borderRadius="lg"
-          colorPalette="gray"
-          aria-label="Acercar"
-          title="Acercar"
-          onClick={handleZoomIn}
-          disabled={scale >= 4}
-          transition="all 0.2s"
-          _hover={{ bg: "blackAlpha.100" }}
-        >
-          <ZoomIn size={16} />
-        </IconButton>
+        <Tooltip content="Acercar Zoom" showArrow>
+          <IconButton
+            size="xs"
+            variant="ghost"
+            borderRadius="lg"
+            colorPalette="gray"
+            aria-label="Acercar"
+            onClick={handleZoomIn}
+            disabled={scale >= 4}
+            transition="all 0.2s"
+            _hover={{ bg: "blackAlpha.100" }}
+          >
+            <ZoomIn size={16} />
+          </IconButton>
+        </Tooltip>
 
-        <IconButton
-          size="xs"
-          variant="ghost"
-          borderRadius="lg"
-          colorPalette="gray"
-          aria-label="Alejar"
-          title="Alejar"
-          onClick={handleZoomOut}
-          disabled={scale <= 1}
-          transition="all 0.2s"
-          _hover={{ bg: "blackAlpha.100" }}
-        >
-          <ZoomOut size={16} />
-        </IconButton>
+        <Tooltip content="Alejar Zoom" showArrow>
+          <IconButton
+            size="xs"
+            variant="ghost"
+            borderRadius="lg"
+            colorPalette="gray"
+            aria-label="Alejar"
+            onClick={handleZoomOut}
+            disabled={scale <= 1}
+            transition="all 0.2s"
+            _hover={{ bg: "blackAlpha.100" }}
+          >
+            <ZoomOut size={16} />
+          </IconButton>
+        </Tooltip>
 
-        <IconButton
-          size="xs"
-          borderRadius="lg"
-          colorPalette={isRecording ? "red" : "blue"}
-          aria-label={isRecording ? "Detener Grabación" : "Grabar"}
-          title={isRecording ? "Detener Grabación" : "Grabar"}
-          onClick={isRecording ? handleStopRecording : handleStartRecording}
-          transition="all 0.2s"
-          boxShadow={isRecording ? "0 0 10px rgba(239, 68, 68, 0.5)" : "none"}
-          _hover={{ opacity: 0.9 }}
-        >
-          {isRecording ? (
-            <Square size={16} fill="currentColor" />
-          ) : (
-            <Video size={16} />
-          )}
-        </IconButton>
+        <Tooltip content={isRecording ? "Detener Grabación de Video" : "Grabar Video Local"} showArrow>
+          <IconButton
+            size="xs"
+            borderRadius="lg"
+            colorPalette={isRecording ? "red" : "blue"}
+            aria-label={isRecording ? "Detener Grabación" : "Grabar"}
+            onClick={isRecording ? handleStopRecording : handleStartRecording}
+            transition="all 0.2s"
+            boxShadow={isRecording ? "0 0 10px rgba(239, 68, 68, 0.5)" : "none"}
+            _hover={{ opacity: 0.9 }}
+          >
+            {isRecording ? (
+              <Square size={16} fill="currentColor" />
+            ) : (
+              <Video size={16} />
+            )}
+          </IconButton>
+        </Tooltip>
       </HStack>
     </Box>
   );
