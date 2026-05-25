@@ -33,8 +33,7 @@ export const Login = ({ onLoginSuccess }) => {
     try {
       const response = await cameraApi.login(username, password);
       if (response && response.status === "success" && response.token) {
-        localStorage.setItem("nvr_token", response.token);
-        onLoginSuccess();
+        onLoginSuccess(response.token, response.username, response.role, response.needsPasswordChange);
       } else {
         setError(response.message || "Error al iniciar sesión.");
       }

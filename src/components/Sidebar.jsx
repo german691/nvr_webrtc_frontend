@@ -30,8 +30,10 @@ import {
   XCircle,
   Trash2,
   LogOut,
+  Users,
 } from "lucide-react";
 import CameraControlCard from "./CameraControlCard";
+import UserManagementModal from "./UserManagementModal";
 import logoImg from "../assets/logoh.png";
 import { Tooltip } from "./ui/tooltip";
 import { formatDeviceName } from "../utils/camera.js";
@@ -42,11 +44,15 @@ import { fetchCameras } from "../store/slices/cameraSlice";
 const Sidebar = () => {
   const { list, isLoading, error } = useSelector((state) => state.cameras);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isUserManagementOpen, setIsUserManagementOpen] = useState(false);
+  const userRole = localStorage.getItem("nvr_role");
 
   const dispatch = useDispatch();
 
   const handleLogout = () => {
     localStorage.removeItem("nvr_token");
+    localStorage.removeItem("nvr_role");
+    localStorage.removeItem("nvr_needs_password_change");
     window.location.reload();
   };
 
@@ -189,7 +195,6 @@ const Sidebar = () => {
       overflow="hidden"
       position="relative"
     >
-      {/* Header unificado */}
       <Flex
         flexShrink={0}
         p={3}
@@ -254,9 +259,7 @@ const Sidebar = () => {
         </IconButton>
       </Flex>
 
-      {/* Contenedor principal con fundido cruzado (Crossfade) */}
       <Box flex="1" position="relative" w="full" overflow="hidden">
-        {/* Vista Expandida (Tarjetas de Control) */}
         <Box
           position="absolute"
           top={0}
@@ -277,7 +280,6 @@ const Sidebar = () => {
           </VStack>
         </Box>
 
-        {/* Vista Colapsada (Iconos de Estado) */}
         <Box
           position="absolute"
           top={0}
@@ -344,7 +346,6 @@ const Sidebar = () => {
         </Box>
       </Box>
 
-      {/* Footer Fijo para Depuración FFmpeg y Logout */}
       <Box
         flexShrink={0}
         p={3}
@@ -369,6 +370,21 @@ const Sidebar = () => {
                 <Activity size={18} />
               </IconButton>
             </Tooltip>
+            {userRole === "admin" && (
+              <Tooltip content="Gestión de Usuarios" positioning={{ placement: "right" }} showArrow>
+                <IconButton
+                  size="sm"
+                  variant="outline"
+                  colorPalette="cyan"
+                  borderRadius="xl"
+                  aria-label="Gestión de Usuarios"
+                  onClick={() => setIsUserManagementOpen(true)}
+                  _hover={{ bg: "cyan.50", borderColor: "cyan.300" }}
+                >
+                  <Users size={18} />
+                </IconButton>
+              </Tooltip>
+            )}
             <Tooltip content="Cerrar sesión" positioning={{ placement: "right" }} showArrow>
               <IconButton
                 id="logout-btn-collapsed"
@@ -401,6 +417,21 @@ const Sidebar = () => {
               <Activity size={16} />
               <Text fontSize="xs">Estado FFmpeg</Text>
             </Button>
+            {userRole === "admin" && (
+              <Tooltip content="Gestión de Usuarios" showArrow>
+                <IconButton
+                  size="sm"
+                  variant="outline"
+                  colorPalette="cyan"
+                  borderRadius="xl"
+                  aria-label="Gestión de Usuarios"
+                  onClick={() => setIsUserManagementOpen(true)}
+                  _hover={{ bg: "cyan.50", borderColor: "cyan.300" }}
+                >
+                  <Users size={16} />
+                </IconButton>
+              </Tooltip>
+            )}
             <Tooltip content="Cerrar sesión" showArrow>
               <IconButton
                 id="logout-btn"
@@ -419,10 +450,8 @@ const Sidebar = () => {
         )}
       </Box>
 
-      {/* Modal de Depuración FFmpeg */}
       {isFfmpegOpen && (
         <Portal>
-          {/* Backdrop con Blur y Fade */}
           <Box
             position="fixed"
             top={0}
@@ -436,7 +465,6 @@ const Sidebar = () => {
             className={isFfmpegClosing ? "animate-backdrop-out" : "animate-backdrop-in"}
           />
 
-          {/* Contenedor del Modal */}
           <Center
             position="fixed"
             top={0}
@@ -447,7 +475,6 @@ const Sidebar = () => {
             pointerEvents="none"
             p={4}
           >
-            {/* Cuerpo del Modal */}
             <Box
               w="full"
               maxW="2xl"
@@ -464,7 +491,6 @@ const Sidebar = () => {
               className={isFfmpegClosing ? "animate-modal-out" : "animate-modal-in"}
               transition="all 0.3s cubic-bezier(0.16, 1, 0.3, 1)"
             >
-              {/* Header */}
               <Flex
                 p={4}
                 borderBottomWidth="1px"
@@ -530,9 +556,7 @@ const Sidebar = () => {
                 </HStack>
               </Flex>
 
-              {/* Body */}
               <Box flex="1" overflowY="auto" p={4} bg="gray.50/50">
-                {/* Cargando */}
                 {isDebuggingLoading && (
                   <Center py={16} flexDirection="column" gap={4}>
                     <Spinner size="lg" color="blue.500" />
@@ -542,7 +566,6 @@ const Sidebar = () => {
                   </Center>
                 )}
 
-                {/* Error */}
                 {!isDebuggingLoading && debugError && (
                   <Center py={12} flexDirection="column" gap={3} px={4}>
                     <Text color="red.500" fontWeight="medium" fontSize="sm" textAlign="center">
@@ -554,7 +577,6 @@ const Sidebar = () => {
                   </Center>
                 )}
 
-                {/* Sin Procesos Activos (Vacío) */}
                 {!isDebuggingLoading && !debugError && debugStreams.length === 0 && (
                   <Center py={16} flexDirection="column" gap={4} px={6}>
                     <Center p={4} borderRadius="full" bg="gray.100" color="gray.400">
@@ -572,7 +594,6 @@ const Sidebar = () => {
                   </Center>
                 )}
 
-                {/* Lista de Streams */}
                 {!isDebuggingLoading && !debugError && debugStreams.length > 0 && (
                   <VStack gap={4} align="stretch">
                     {debugStreams.map((stream) => (
@@ -587,7 +608,6 @@ const Sidebar = () => {
                         transition="all 0.2s"
                         _hover={{ shadow: "md", borderColor: "gray.300" }}
                       >
-                        {/* Header de la tarjeta de proceso */}
                         <Flex justify="space-between" align="center" mb={3}>
                           <HStack gap={2}>
                             <Box className="pulse-green-dot" />
@@ -614,7 +634,6 @@ const Sidebar = () => {
                           </HStack>
                         </Flex>
 
-                        {/* Specs row */}
                         <HStack gap={1.5} wrap="wrap" mb={4}>
                           <Badge size="sm" colorPalette="gray" variant="outline" borderRadius="md" fontSize="2xs">
                             Resolución: {stream.resolution}
@@ -634,9 +653,7 @@ const Sidebar = () => {
                           )}
                         </HStack>
 
-                        {/* Resource usage indicators */}
                         <VStack gap={3.5} align="stretch" mb={4}>
-                          {/* CPU */}
                           <Box>
                             <Flex justify="space-between" mb={1} align="center">
                               <HStack gap={1}>
@@ -658,7 +675,6 @@ const Sidebar = () => {
                             </Box>
                           </Box>
 
-                          {/* Memoria */}
                           <Box>
                             <Flex justify="space-between" mb={1} align="center">
                               <HStack gap={1}>
@@ -681,14 +697,12 @@ const Sidebar = () => {
                           </Box>
                         </VStack>
 
-                        {/* Meta y Tiempos */}
                         <HStack justify="space-between" fontSize="2xs" color="gray.500" py={1.5} borderTopWidth="1px" borderBottomWidth="1px" borderColor="gray.100" mb={3}>
                           <Text>Iniciado: <Text as="span" fontWeight="semibold" color="gray.700">{stream.start}</Text></Text>
                           <Text>Tiempo CPU: <Text as="span" fontWeight="semibold" color="gray.700">{stream.time}</Text></Text>
                           <Text>Usuario: <Text as="span" fontWeight="semibold" color="gray.700">{stream.user}</Text></Text>
                         </HStack>
 
-                        {/* RTSP Destination Url card */}
                         {stream.rtspUrl !== "N/A" && (
                           <Box p={2.5} bg="gray.50" borderRadius="xl" borderWidth="1px" borderColor="gray.200" mb={2}>
                             <Flex align="center" justify="space-between" gap={2}>
@@ -716,7 +730,6 @@ const Sidebar = () => {
                           </Box>
                         )}
 
-                        {/* Accordion command box */}
                         <Box>
                           <Button
                             size="2xs"
@@ -768,6 +781,10 @@ const Sidebar = () => {
           </Center>
         </Portal>
       )}
+      <UserManagementModal
+        isOpen={isUserManagementOpen}
+        onClose={() => setIsUserManagementOpen(false)}
+      />
     </Box>
   );
 };
