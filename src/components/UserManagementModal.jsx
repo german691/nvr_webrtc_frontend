@@ -12,6 +12,7 @@ import {
   Spinner,
   IconButton,
   NativeSelect,
+  Center,
 } from "@chakra-ui/react";
 import {
   User,
@@ -281,7 +282,7 @@ export const UserManagementModal = ({ isOpen, onClose }) => {
             bg="gray.50"
           >
             <HStack gap={3}>
-              <Box p={2} borderRadius="xl" bg="cyan.50" color="cyan.600">
+              <Box p={2} borderRadius="xl" bg="gray.100" color="gray.800">
                 <Users size={20} />
               </Box>
               <VStack align="stretch" gap={0}>
@@ -388,7 +389,7 @@ export const UserManagementModal = ({ isOpen, onClose }) => {
                     {!resettingPasswordUser && (
                       <HStack gap={4} align="start">
                         <Box flex="1">
-                          <Text fontSize="2xs" fontWeight="bold" color="cyan.650" mb={1.5} textTransform="uppercase">
+                          <Text fontSize="2xs" fontWeight="bold" color="gray.700" mb={1.5} textTransform="uppercase">
                             Nombre de Usuario
                           </Text>
                           <Input
@@ -405,7 +406,7 @@ export const UserManagementModal = ({ isOpen, onClose }) => {
                         </Box>
 
                         <Box w="180px">
-                          <Text fontSize="2xs" fontWeight="bold" color="cyan.650" mb={1.5} textTransform="uppercase">
+                          <Text fontSize="2xs" fontWeight="bold" color="gray.700" mb={1.5} textTransform="uppercase">
                             Rol del Usuario
                           </Text>
                           <NativeSelect.Root size="sm" h="38px" bg="white" borderRadius="lg">
@@ -424,7 +425,7 @@ export const UserManagementModal = ({ isOpen, onClose }) => {
 
                     {(isCreating || resettingPasswordUser) && (
                       <Box>
-                        <Text fontSize="2xs" fontWeight="bold" color="cyan.650" mb={1.5} textTransform="uppercase">
+                        <Text fontSize="2xs" fontWeight="bold" color="gray.700" mb={1.5} textTransform="uppercase">
                           {resettingPasswordUser ? "Nueva Contraseña" : "Contraseña Inicial"}
                         </Text>
                         <Flex position="relative" align="center">
@@ -470,13 +471,13 @@ export const UserManagementModal = ({ isOpen, onClose }) => {
                       loading={actionLoading}
                       loadingText="Guardando..."
                       h="38px"
-                      bgGradient="to-r, cyan.500, blue.600"
+                      bg="blue.600"
                       color="white"
                       borderRadius="lg"
                       fontSize="xs"
                       fontWeight="bold"
                       _hover={{
-                        bgGradient: "to-r, cyan.400, blue.500",
+                        bg: "blue.700",
                       }}
                     >
                       Guardar Cambios
@@ -488,7 +489,7 @@ export const UserManagementModal = ({ isOpen, onClose }) => {
 
             {isLoading ? (
               <Flex py={12} direction="column" align="center" gap={4}>
-                <Spinner color="cyan.500" size="lg" />
+                <Spinner color="blue.600" size="lg" />
                 <Text fontSize="xs" color="gray.500">
                   Cargando listado de usuarios...
                 </Text>
@@ -498,8 +499,8 @@ export const UserManagementModal = ({ isOpen, onClose }) => {
                 {!isCreating && !editingUser && !resettingPasswordUser && (
                   <Button
                     size="sm"
-                    variant="subtle"
-                    colorPalette="cyan"
+                    variant="solid"
+                    colorPalette="blue"
                     borderRadius="xl"
                     onClick={() => setIsCreating(true)}
                     mb={4}
@@ -528,8 +529,8 @@ export const UserManagementModal = ({ isOpen, onClose }) => {
                           <Center
                             p={2.5}
                             borderRadius="full"
-                            bg={user.role === "admin" ? "blue.50" : "gray.50"}
-                            color={user.role === "admin" ? "blue.600" : "gray.500"}
+                            bg="gray.100"
+                            color="gray.800"
                           >
                             {user.role === "admin" ? <Shield size={16} /> : <User size={16} />}
                           </Center>
@@ -539,7 +540,7 @@ export const UserManagementModal = ({ isOpen, onClose }) => {
                             </Text>
                             <HStack gap={2}>
                               <Badge
-                                colorPalette={user.role === "admin" ? "blue" : "gray"}
+                                colorPalette="gray"
                                 variant="subtle"
                                 fontSize="3xs"
                                 borderRadius="md"
@@ -566,7 +567,7 @@ export const UserManagementModal = ({ isOpen, onClose }) => {
                           <IconButton
                             size="xs"
                             variant="ghost"
-                            colorPalette="blue"
+                            colorPalette="gray"
                             borderRadius="lg"
                             onClick={() => startEdit(user)}
                             title="Editar Perfil"
@@ -577,7 +578,7 @@ export const UserManagementModal = ({ isOpen, onClose }) => {
                           <IconButton
                             size="xs"
                             variant="ghost"
-                            colorPalette="orange"
+                            colorPalette="gray"
                             borderRadius="lg"
                             onClick={() => startResetPassword(user)}
                             title="Restablecer Contraseña"

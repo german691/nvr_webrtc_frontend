@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useMemo } from "react";
-import { Box, HStack, IconButton, Popover, Text, VStack, Portal } from "@chakra-ui/react";
+import { Box, HStack, IconButton, Popover, Text, VStack, Portal, Center } from "@chakra-ui/react";
 import {
   Camera,
   ZoomIn,
@@ -32,7 +32,7 @@ const WebRTCPlayer = ({ url, camera }) => {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [showControls, setShowControls] = useState(true);
+  const [showControls, setShowControls] = useState(false);
   const dragStart = useRef({ x: 0, y: 0 });
 
   // Popover open states to manage controls visibility in fullscreen
@@ -145,6 +145,12 @@ const WebRTCPlayer = ({ url, camera }) => {
   // --- WEBRTC ---
   useEffect(() => {
     if (!url) return;
+
+    if (url.startsWith("mock://")) {
+      // Cámara virtual estática optimizada: no requiere stream ni canvas en el reproductor.
+      // Se renderiza un contenedor puramente estático en el JSX para consumir 0 recursos.
+      return;
+    }
 
     let pc = null;
 
@@ -426,25 +432,59 @@ const WebRTCPlayer = ({ url, camera }) => {
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseUp}
+      onMouseEnter={() => {
+        setShowControls(true);
+      }}
+      onMouseLeave={(e) => {
+        handleMouseUp(e);
+        if (!isAnyPopoverOpen) {
+          setShowControls(false);
+        }
+      }}
       onWheel={handleWheel}
       onDoubleClick={toggleFullScreen}
       cursor={scale > 1 ? (isDragging ? "grabbing" : "grab") : "default"}
     >
-      <video
-        ref={videoRef}
-        autoPlay
-        playsInline
-        muted
-        style={{
-          width: "100%",
-          height: "100%",
-          objectFit: "contain",
-          backgroundColor: "#000",
-          transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
-          transition: isDragging ? "none" : "transform 0.2s ease-out",
-        }}
-      />
+      {url.startsWith("mock://") ? (
+        <Center
+          position="absolute"
+          top={0}
+          left={0}
+          right={0}
+          bottom={0}
+          bg="black"
+          userSelect="none"
+          style={{
+            transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
+            transition: isDragging ? "none" : "transform 0.2s ease-out",
+          }}
+        >
+          <Text
+            fontSize="sm"
+            fontWeight="bold"
+            color="whiteAlpha.300"
+            fontFamily="mono"
+            letterSpacing="wide"
+          >
+            {camera?.name || camera?.dev}
+          </Text>
+        </Center>
+      ) : (
+        <video
+          ref={videoRef}
+          autoPlay
+          playsInline
+          muted
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "contain",
+            backgroundColor: "#000",
+            transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
+            transition: isDragging ? "none" : "transform 0.2s ease-out",
+          }}
+        />
+      )}
 
       <HStack
         position="absolute"
@@ -502,20 +542,25 @@ const WebRTCPlayer = ({ url, camera }) => {
             portalled={true}
             unmountOnExit={false}
           >
-            <Tooltip content="Ajustes de Transmisión (Resolución y FPS)" showArrow>
-              <Popover.Trigger asChild>
-                <IconButton
-                  size="xs"
-                  variant="ghost"
-                  borderRadius="lg"
-                  colorPalette="gray"
-                  aria-label="Configuración de transmisión"
-                  transition="all 0.2s"
-                  _hover={{ bg: "blackAlpha.100" }}
-                >
-                  <Settings size={16} />
-                </IconButton>
-              </Popover.Trigger>
+            <Tooltip
+              content="Ajustes de Transmisión (Resolución y FPS)"
+              showArrow
+            >
+              <span style={{ display: "inline-block" }}>
+                <Popover.Trigger asChild>
+                  <IconButton
+                    size="xs"
+                    variant="ghost"
+                    borderRadius="lg"
+                    colorPalette="gray"
+                    aria-label="Configuración de transmisión"
+                    transition="all 0.2s"
+                    _hover={{ bg: "blackAlpha.100" }}
+                  >
+                    <Settings size={16} />
+                  </IconButton>
+                </Popover.Trigger>
+              </span>
             </Tooltip>
             <Portal>
               <Popover.Positioner zIndex={1600}>

@@ -160,7 +160,7 @@ export const Login = ({ onLoginSuccess }) => {
                 <Text
                   fontSize="xs"
                   fontWeight="semibold"
-                  color="cyan.650"
+                  color="gray.700"
                   mb={2}
                   letterSpacing="wider"
                   textTransform="uppercase"
@@ -188,10 +188,10 @@ export const Login = ({ onLoginSuccess }) => {
                     _placeholder={{ color: "gray.400" }}
                     _hover={{ borderColor: "rgba(15, 23, 42, 0.2)" }}
                     _focus={{
-                      borderColor: "cyan.500",
+                      borderColor: "blue.500",
                       bg: "white",
                       outline: "none",
-                      boxShadow: "0 0 0 1px rgba(6, 182, 212, 0.25)",
+                      boxShadow: "0 0 0 1px rgba(37, 99, 235, 0.25)",
                     }}
                     transition="all 0.2s"
                     disabled={isLoading}
@@ -205,7 +205,7 @@ export const Login = ({ onLoginSuccess }) => {
                 <Text
                   fontSize="xs"
                   fontWeight="semibold"
-                  color="cyan.650"
+                  color="gray.700"
                   mb={2}
                   letterSpacing="wider"
                   textTransform="uppercase"
@@ -233,10 +233,10 @@ export const Login = ({ onLoginSuccess }) => {
                     _placeholder={{ color: "gray.400" }}
                     _hover={{ borderColor: "rgba(15, 23, 42, 0.2)" }}
                     _focus={{
-                      borderColor: "cyan.500",
+                      borderColor: "blue.500",
                       bg: "white",
                       outline: "none",
-                      boxShadow: "0 0 0 1px rgba(6, 182, 212, 0.25)",
+                      boxShadow: "0 0 0 1px rgba(37, 99, 235, 0.25)",
                     }}
                     transition="all 0.2s"
                     disabled={isLoading}
@@ -294,14 +294,14 @@ export const Login = ({ onLoginSuccess }) => {
                 loading={isLoading}
                 loadingText="Autenticando..."
                 h="50px"
-                bgGradient="to-r, cyan.500, blue.600"
+                bg="blue.600"
                 color="white"
                 borderRadius="xl"
                 fontSize="sm"
                 fontWeight="semibold"
                 _hover={{
-                  bgGradient: "to-r, cyan.400, blue.500",
-                  shadow: "0 10px 20px rgba(6, 182, 212, 0.25)",
+                  bg: "blue.700",
+                  shadow: "0 10px 20px rgba(37, 99, 235, 0.2)",
                   transform: "translateY(-1px)",
                 }}
                 _active={{

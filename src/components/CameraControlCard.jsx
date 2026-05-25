@@ -17,6 +17,8 @@ import { formatDeviceName, BITRATES } from "../utils/camera.js";
 import { UvcControlPanel } from "./UvcControlPanel.jsx";
 import { StreamSettings } from "./StreamSettings.jsx";
 import { Settings } from "lucide-react";
+import { BeatLoader } from "react-spinners";
+import { Tooltip } from "./ui/tooltip";
 
 const CameraControlCard = ({ camera }) => {
   const dispatch = useDispatch();
@@ -177,18 +179,13 @@ const CameraControlCard = ({ camera }) => {
   return (
     <Box
       borderWidth="1px"
-      borderColor={camera.streaming ? "green.500" : "gray.200"}
+      borderColor="gray.200"
       borderRadius="2xl"
       p={3}
       bg="white"
       transition="all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
-      boxShadow={camera.streaming ? "0 0 16px rgba(34, 197, 94, 0.2)" : "none"}
       _hover={{
-        borderColor: camera.streaming ? "green.600" : "gray.300",
-        boxShadow: camera.streaming
-          ? "0 0 20px rgba(34, 197, 94, 0.25)"
-          : "0 4px 12px rgba(0, 0, 0, 0.03)",
-        transform: "translateY(-1px)",
+        borderColor: "gray.300",
       }}
     >
       <HStack justify="space-between" mb={3.5}>
@@ -196,7 +193,7 @@ const CameraControlCard = ({ camera }) => {
           {formatDeviceName(camera.dev)}
         </Text>
         <Badge
-          colorPalette={camera.streaming ? "green" : "gray"}
+          colorPalette={camera.streaming ? "red" : "gray"}
           variant="subtle"
           fontSize="2xs"
           px={2}
@@ -211,37 +208,43 @@ const CameraControlCard = ({ camera }) => {
         <Flex gap={2} align="center">
           <Button
             flex="1"
-            variant={camera.streaming ? "solid" : "subtle"}
+            variant={camera.streaming ? "surface" : "solid"}
             size="sm"
-            colorPalette={camera.streaming ? "green" : "blue"}
+            colorPalette={camera.streaming ? "red" : "blue"}
             onClick={handleToggle}
             borderRadius="xl"
             fontWeight="semibold"
             transition="all 0.2s"
             _hover={{ opacity: 0.9 }}
             loading={isToggling}
-            loadingText={camera.streaming ? "Apagando..." : "Conectando..."}
+            spinner={<BeatLoader size={8} color={camera.streaming ? "#ef4444" : "white"} />}
           >
             {camera.streaming ? "Apagar" : "Visualizar"}
           </Button>
 
           <Popover.Root portalled={true} unmountOnExit={false}>
-            <Popover.Trigger asChild>
-              <IconButton
-                size="sm"
-                variant="outline"
-                colorPalette="gray"
-                borderColor="gray.200"
-                borderRadius="xl"
-                aria-label="Configuración de transmisión"
-                title="Configuración de transmisión"
-                transition="all 0.2s"
-                _hover={{ bg: "gray.50", borderColor: "gray.300" }}
-                disabled={isToggling}
-              >
-                <Settings size={16} />
-              </IconButton>
-            </Popover.Trigger>
+            <Tooltip
+              content="Configuración de transmisión"
+              showArrow
+            >
+              <span style={{ display: "inline-block" }}>
+                <Popover.Trigger asChild>
+                  <IconButton
+                    size="sm"
+                    variant="outline"
+                    colorPalette="gray"
+                    borderColor="gray.200"
+                    borderRadius="xl"
+                    aria-label="Configuración de transmisión"
+                    transition="all 0.2s"
+                    _hover={{ bg: "gray.50", borderColor: "gray.300" }}
+                    disabled={isToggling}
+                  >
+                    <Settings size={16} />
+                  </IconButton>
+                </Popover.Trigger>
+              </span>
+            </Tooltip>
             <Portal>
               <Popover.Positioner zIndex={1600}>
                 <Popover.Content

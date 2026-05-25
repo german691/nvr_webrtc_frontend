@@ -148,26 +148,29 @@ export const UvcControlPanel = ({
       portalled={true}
       unmountOnExit={false}
     >
-      <Popover.Trigger asChild>
-        <IconButton
-          size={size}
-          variant={variant}
-          borderRadius={borderRadius}
-          colorPalette="gray"
-          borderColor={variant === "outline" ? "gray.200" : undefined}
-          aria-label="Ajustes de video"
-          title="Ajustes de video"
-          transition="all 0.2s"
-          _hover={
-            variant === "ghost"
-              ? { bg: "blackAlpha.100" }
-              : { bg: "gray.50", borderColor: "gray.300" }
-          }
-          {...buttonProps}
-        >
-          <SlidersHorizontal size={16} />
-        </IconButton>
-      </Popover.Trigger>
+      <Tooltip content="Ajustes de video" showArrow>
+        <span style={{ display: "inline-block" }}>
+          <Popover.Trigger asChild>
+            <IconButton
+              size={size}
+              variant={variant}
+              borderRadius={borderRadius}
+              colorPalette="gray"
+              borderColor={variant === "outline" ? "gray.200" : undefined}
+              aria-label="Ajustes de video"
+              transition="all 0.2s"
+              _hover={
+                variant === "ghost"
+                  ? { bg: "blackAlpha.100" }
+                  : { bg: "gray.50", borderColor: "gray.300" }
+              }
+              {...buttonProps}
+            >
+              <SlidersHorizontal size={16} />
+            </IconButton>
+          </Popover.Trigger>
+        </span>
+      </Tooltip>
       <Portal>
         <Popover.Positioner zIndex={1600}>
           <Popover.Content
@@ -275,11 +278,6 @@ export const UvcControlPanel = ({
                           >
                             Ajuste de Foco
                           </Text>
-                          {focusAbsCtrl && (
-                            <Text fontSize="2xs" color="gray.400">
-                              Valor: {focusAbsCtrl.value}
-                            </Text>
-                          )}
                         </Flex>
 
                         <HStack gap={2} mb={focusAbsCtrl ? 3 : 0} width="100%">
@@ -475,17 +473,7 @@ export const UvcControlPanel = ({
                                 />
                               </NumberInput.Root>
                             </HStack>
-                            {focusAutoCtrl &&
-                              Number(focusAutoCtrl.value) === 1 && (
-                                <Text
-                                  fontSize="2xs"
-                                  color="gray.500"
-                                  fontStyle="italic"
-                                >
-                                  El auto-foco está activo. Mueve el control
-                                  para pasar a manual.
-                                </Text>
-                              )}
+
                           </VStack>
                         )}
                       </Box>

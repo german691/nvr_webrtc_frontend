@@ -91,6 +91,11 @@ export const cameraApi = {
     return response.data;
   },
 
+  getDebugModeStatus: async () => {
+    const response = await axios.get(`${API_BASE_URL}/debug-mode`);
+    return response.data;
+  },
+
   updateConfig: async (configPayload) => {
     const response = await axios.put(`${API_BASE_URL}/config`, configPayload);
     return response.data;

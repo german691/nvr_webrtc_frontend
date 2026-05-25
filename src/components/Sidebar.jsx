@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   VStack,
   Text,
@@ -14,6 +14,7 @@ import {
   Button,
   Portal,
 } from "@chakra-ui/react";
+import { BeatLoader } from "react-spinners";
 import { useSelector, useDispatch } from "react-redux";
 import {
   ChevronLeft,
@@ -46,6 +47,19 @@ const Sidebar = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isUserManagementOpen, setIsUserManagementOpen] = useState(false);
   const userRole = localStorage.getItem("nvr_role");
+  const [isDebugMode, setIsDebugMode] = useState(false);
+
+  useEffect(() => {
+    const checkDebugMode = async () => {
+      try {
+        const res = await cameraApi.getDebugModeStatus();
+        setIsDebugMode(!!res.debugMode);
+      } catch (err) {
+        console.warn("No se pudo obtener el estado de depuración del backend:", err);
+      }
+    };
+    checkDebugMode();
+  }, []);
 
   const dispatch = useDispatch();
 
@@ -156,7 +170,7 @@ const Sidebar = () => {
   if (isLoading) {
     return (
       <Center p={8} flexDirection="column" gap={4}>
-        <Spinner color="blue.500" size="xl" />
+        <BeatLoader size={12} color="#2563eb" />
         <Text color="gray.600" fontSize="sm">
           Consultando hardware en nodos Edge...
         </Text>
@@ -230,19 +244,42 @@ const Sidebar = () => {
               transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
             }}
           />
-          <Heading
-            size="md"
-            color="black"
-            letterSpacing="tight"
-            whiteSpace="nowrap"
+          <Box
             style={{
               opacity: isCollapsed ? 0 : 1,
               transform: isCollapsed ? "translateX(-15px)" : "translateX(0)",
               transition: "opacity 0.2s linear, transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
             }}
           >
-            UCAMI Odontología
-          </Heading>
+            <Heading
+              size="md"
+              color="black"
+              letterSpacing="tight"
+              whiteSpace="nowrap"
+            >
+              UCAMI Odontología
+            </Heading>
+            {isDebugMode && (
+              <Badge
+                colorPalette="blue"
+                variant="solid"
+                size="2xs"
+                borderRadius="full"
+                px={2}
+                py={0.2}
+                className="pulse-blue-badge"
+                style={{
+                  fontSize: "8px",
+                  fontWeight: "bold",
+                  marginTop: "1px",
+                  display: "inline-block",
+                  letterSpacing: "0.5px"
+                }}
+              >
+                MODO DEMO
+              </Badge>
+            )}
+          </Box>
         </HStack>
         <IconButton
           aria-label={isCollapsed ? "Expandir barra lateral" : "Colapsar barra lateral"}
@@ -311,17 +348,17 @@ const Sidebar = () => {
                     position="relative"
                     p={2.5}
                     borderRadius="full"
-                    bg={isStreaming ? "green.50" : "gray.50"}
+                    bg={isStreaming ? "blue.50" : "gray.50"}
                     borderWidth="2px"
-                    borderColor={isStreaming ? "green.500" : "gray.200"}
-                    color={isStreaming ? "green.600" : "gray.500"}
+                    borderColor={isStreaming ? "blue.500" : "gray.200"}
+                    color={isStreaming ? "blue.600" : "gray.500"}
                     cursor="pointer"
                     onClick={() => setIsCollapsed(false)}
                     transition="all 0.2s cubic-bezier(0.4, 0, 0.2, 1)"
                     _hover={{
-                      borderColor: isStreaming ? "green.600" : "gray.400",
-                      bg: isStreaming ? "green.100" : "gray.100",
-                      boxShadow: isStreaming ? "0 0 10px rgba(34, 197, 94, 0.35)" : "none"
+                      borderColor: isStreaming ? "blue.600" : "gray.400",
+                      bg: isStreaming ? "blue.100" : "gray.100",
+                      boxShadow: isStreaming ? "0 0 10px rgba(37, 99, 235, 0.2)" : "none"
                     }}
                   >
                     <Video size={18} />
@@ -332,7 +369,7 @@ const Sidebar = () => {
                         right="0"
                         w="2.5"
                         h="2.5"
-                        bg="red.500"
+                        bg="blue.500"
                         borderRadius="full"
                         borderWidth="1.5px"
                         borderColor="white"
@@ -360,12 +397,11 @@ const Sidebar = () => {
             <Tooltip content="Estado FFmpeg" positioning={{ placement: "right" }} showArrow>
               <IconButton
                 size="sm"
-                variant="outline"
-                colorPalette="blue"
+                variant="surface"
+                colorPalette="gray"
                 borderRadius="xl"
                 aria-label="Estado FFmpeg"
                 onClick={handleOpenDebug}
-                _hover={{ bg: "blue.50", borderColor: "blue.300" }}
               >
                 <Activity size={18} />
               </IconButton>
@@ -374,12 +410,11 @@ const Sidebar = () => {
               <Tooltip content="Gestión de Usuarios" positioning={{ placement: "right" }} showArrow>
                 <IconButton
                   size="sm"
-                  variant="outline"
-                  colorPalette="cyan"
+                  variant="surface"
+                  colorPalette="blue"
                   borderRadius="xl"
                   aria-label="Gestión de Usuarios"
                   onClick={() => setIsUserManagementOpen(true)}
-                  _hover={{ bg: "cyan.50", borderColor: "cyan.300" }}
                 >
                   <Users size={18} />
                 </IconButton>
@@ -389,12 +424,11 @@ const Sidebar = () => {
               <IconButton
                 id="logout-btn-collapsed"
                 size="sm"
-                variant="outline"
+                variant="surface"
                 colorPalette="red"
                 borderRadius="xl"
                 aria-label="Cerrar sesión"
                 onClick={handleLogout}
-                _hover={{ bg: "red.50", borderColor: "red.300" }}
               >
                 <LogOut size={18} />
               </IconButton>
@@ -404,15 +438,14 @@ const Sidebar = () => {
           <HStack w="full" gap={2}>
             <Button
               flex="1"
-              variant="outline"
-              colorPalette="blue"
+              variant="surface"
+              colorPalette="gray"
               size="sm"
               borderRadius="xl"
               onClick={handleOpenDebug}
               fontWeight="semibold"
               justifyContent="center"
               gap={2}
-              _hover={{ bg: "blue.50", borderColor: "blue.300" }}
             >
               <Activity size={16} />
               <Text fontSize="xs">Estado FFmpeg</Text>
@@ -421,12 +454,11 @@ const Sidebar = () => {
               <Tooltip content="Gestión de Usuarios" showArrow>
                 <IconButton
                   size="sm"
-                  variant="outline"
-                  colorPalette="cyan"
+                  variant="surface"
+                  colorPalette="blue"
                   borderRadius="xl"
                   aria-label="Gestión de Usuarios"
                   onClick={() => setIsUserManagementOpen(true)}
-                  _hover={{ bg: "cyan.50", borderColor: "cyan.300" }}
                 >
                   <Users size={16} />
                 </IconButton>
@@ -436,12 +468,11 @@ const Sidebar = () => {
               <IconButton
                 id="logout-btn"
                 size="sm"
-                variant="outline"
+                variant="surface"
                 colorPalette="red"
                 borderRadius="xl"
                 aria-label="Cerrar sesión"
                 onClick={handleLogout}
-                _hover={{ bg: "red.50", borderColor: "red.300" }}
               >
                 <LogOut size={16} />
               </IconButton>
@@ -509,7 +540,7 @@ const Sidebar = () => {
                         Depuración de Flujos FFmpeg
                       </Text>
                       {!isDebuggingLoading && !debugError && debugStreams.length > 0 && (
-                        <Badge colorPalette="green" variant="subtle" borderRadius="full">
+                        <Badge colorPalette="blue" variant="subtle" borderRadius="full">
                           {debugStreams.length} ACTIVO{debugStreams.length > 1 ? "S" : ""}
                         </Badge>
                       )}
@@ -559,7 +590,7 @@ const Sidebar = () => {
               <Box flex="1" overflowY="auto" p={4} bg="gray.50/50">
                 {isDebuggingLoading && (
                   <Center py={16} flexDirection="column" gap={4}>
-                    <Spinner size="lg" color="blue.500" />
+                    <BeatLoader size={12} color="#2563eb" />
                     <Text fontSize="sm" color="gray.500">
                       Analizando procesos en el host remoto...
                     </Text>
@@ -610,7 +641,7 @@ const Sidebar = () => {
                       >
                         <Flex justify="space-between" align="center" mb={3}>
                           <HStack gap={2}>
-                            <Box className="pulse-green-dot" />
+                            <Box className="pulse-blue-dot" />
                             <Text fontWeight="bold" fontSize="sm" color="gray.800" fontFamily="mono">
                               {stream.device}
                             </Text>
@@ -647,7 +678,7 @@ const Sidebar = () => {
                             </Badge>
                           )}
                           {stream.vaapi !== "N/A" && (
-                            <Badge size="sm" colorPalette="teal" variant="outline" borderRadius="md" fontSize="2xs">
+                            <Badge size="sm" colorPalette="blue" variant="outline" borderRadius="md" fontSize="2xs">
                               HW: VAAPI
                             </Badge>
                           )}
@@ -668,7 +699,7 @@ const Sidebar = () => {
                               <Box
                                 w={`${Math.min(stream.cpu, 100)}%`}
                                 h="full"
-                                bg={stream.cpu > 50 ? "orange.500" : "green.500"}
+                                bg={stream.cpu > 80 ? "red.500" : stream.cpu > 50 ? "orange.500" : "blue.500"}
                                 borderRadius="full"
                                 transition="width 0.4s ease-out"
                               />
@@ -689,7 +720,7 @@ const Sidebar = () => {
                               <Box
                                 w={`${Math.min(stream.mem * 10, 100)}%`} // visual boost for scale
                                 h="full"
-                                bg={stream.mem > 5 ? "orange.500" : "blue.500"}
+                                bg={stream.mem > 80 ? "red.500" : stream.mem > 60 ? "orange.500" : "blue.500"}
                                 borderRadius="full"
                                 transition="width 0.4s ease-out"
                               />
@@ -781,10 +812,12 @@ const Sidebar = () => {
           </Center>
         </Portal>
       )}
-      <UserManagementModal
-        isOpen={isUserManagementOpen}
-        onClose={() => setIsUserManagementOpen(false)}
-      />
+      <Portal>
+        <UserManagementModal
+          isOpen={isUserManagementOpen}
+          onClose={() => setIsUserManagementOpen(false)}
+        />
+      </Portal>
     </Box>
   );
 };
