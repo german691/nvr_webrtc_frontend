@@ -194,10 +194,13 @@ const VideoWall = () => {
   // Sincronizar ratios cuando cambia el diseño o distribución de columnas/filas
   useEffect(() => {
     const defaults = getDefaultRatios(count, currentLayout);
-    setColRatio(defaults.colRatio);
-    setColRatio2(defaults.colRatio2);
-    setRowRatio(defaults.rowRatio);
-    setRowRatio2(defaults.rowRatio2);
+    const timer = setTimeout(() => {
+      setColRatio(defaults.colRatio);
+      setColRatio2(defaults.colRatio2);
+      setRowRatio(defaults.rowRatio);
+      setRowRatio2(defaults.rowRatio2);
+    }, 0);
+    return () => clearTimeout(timer);
   }, [cols, rows, count, currentLayout]);
 
   // Escuchar eventos globales de arrastre de mouse
@@ -257,19 +260,22 @@ const VideoWall = () => {
   useEffect(() => {
     const active = list.filter((cam) => cam.streaming && cam.webrtc_url);
     
-    setOrderedCameras((prev) => {
-      // 1. Conservamos las que siguen activas en el orden que ya tenían
-      const stillActive = prev.filter((prevCam) =>
-        active.some((actCam) => actCam.dev === prevCam.dev)
-      );
-      
-      // 2. Agregamos las nuevas cámaras que se acaban de encender
-      const newActive = active.filter((actCam) =>
-        !prev.some((prevCam) => prevCam.dev === actCam.dev)
-      );
-      
-      return [...stillActive, ...newActive];
-    });
+    const timer = setTimeout(() => {
+      setOrderedCameras((prev) => {
+        // 1. Conservamos las que siguen activas en el orden que ya tenían
+        const stillActive = prev.filter((prevCam) =>
+          active.some((actCam) => actCam.dev === prevCam.dev)
+        );
+        
+        // 2. Agregamos las nuevas cámaras que se acaban de encender
+        const newActive = active.filter((actCam) =>
+          !prev.some((prevCam) => prevCam.dev === actCam.dev)
+        );
+        
+        return [...stillActive, ...newActive];
+      });
+    }, 0);
+    return () => clearTimeout(timer);
   }, [list]);
 
   // Iniciar arrastre
@@ -569,8 +575,8 @@ const VideoWall = () => {
       };
     }
 
-    let gridTemplateColumns = "";
-    let gridTemplateRows = "";
+    let gridTemplateColumns;
+    let gridTemplateRows;
 
     // Construir columnas
     if (cols === 2) {

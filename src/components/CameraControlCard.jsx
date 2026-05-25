@@ -13,7 +13,7 @@ import {
 } from "@chakra-ui/react";
 import { useDispatch } from "react-redux";
 import { toggleStream } from "../store/slices/cameraSlice";
-import { formatDeviceName, BITRATES } from "../utils/camera.js";
+import { formatDeviceName, BITRATES, getSortedResolutions, getSortedFps } from "../utils/camera.js";
 import { UvcControlPanel } from "./UvcControlPanel.jsx";
 import { StreamSettings } from "./StreamSettings.jsx";
 import { Settings } from "lucide-react";
@@ -23,41 +23,8 @@ import { Tooltip } from "./ui/tooltip";
 const CameraControlCard = ({ camera }) => {
   const dispatch = useDispatch();
 
-  const sortedResolutions = useMemo(() => {
-    const rawResolutions =
-      camera.modes && camera.modes.length > 0
-        ? camera.modes.map((m) => (typeof m === "object" ? m.resolution : m))
-        : ["1920x1080", "1280x720"];
-
-    return [...new Set(rawResolutions)].sort((a, b) => {
-      const [wA, hA] = a.trim().split("x").map(Number);
-      const [wB, hB] = b.trim().split("x").map(Number);
-      return wA - wB || hA - hB;
-    });
-  }, [camera.modes]);
-
-  const sortedFps = useMemo(() => {
-    let rawFps = [];
-    if (camera.modes && camera.modes.length > 0) {
-      camera.modes.forEach((m) => {
-        if (typeof m === "object" && m.fps) {
-          if (Array.isArray(m.fps)) {
-            rawFps.push(...m.fps);
-          } else {
-            rawFps.push(m.fps);
-          }
-        }
-      });
-    }
-
-    if (rawFps.length === 0) {
-      rawFps = [30, 24, 60];
-    }
-
-    return [...new Set(rawFps.map(String))].sort(
-      (a, b) => Number(a) - Number(b),
-    );
-  }, [camera.modes]);
+  const sortedResolutions = useMemo(() => getSortedResolutions(camera.modes), [camera.modes]);
+  const sortedFps = useMemo(() => getSortedFps(camera.modes), [camera.modes]);
 
   const initialRes = sortedResolutions.includes("1920x1080")
     ? "1920x1080"

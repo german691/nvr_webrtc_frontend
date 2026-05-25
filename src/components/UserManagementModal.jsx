@@ -67,13 +67,6 @@ export const UserManagementModal = ({ isOpen, onClose }) => {
     }
   };
 
-  useEffect(() => {
-    if (isOpen) {
-      fetchUsers();
-      resetForm();
-    }
-  }, [isOpen]);
-
   const resetForm = () => {
     setUsername("");
     setPassword("");
@@ -84,6 +77,16 @@ export const UserManagementModal = ({ isOpen, onClose }) => {
     setResettingPasswordUser(null);
     setError(null);
   };
+
+  useEffect(() => {
+    if (isOpen) {
+      const timer = setTimeout(() => {
+        fetchUsers();
+        resetForm();
+      }, 0);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
 
   const showNotification = (msg, type = "success") => {
     if (type === "success") {

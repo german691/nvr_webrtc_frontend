@@ -16,6 +16,7 @@ import { toggleStream } from "../store/slices/cameraSlice";
 import { StreamSettings } from "./StreamSettings.jsx";
 import { UvcControlPanel } from "./UvcControlPanel.jsx";
 import { Tooltip } from "./ui/tooltip";
+import { getSortedResolutions, getSortedFps } from "../utils/camera.js";
 
 const WebRTCPlayer = ({ url, camera }) => {
   const dispatch = useDispatch();
@@ -43,37 +44,8 @@ const WebRTCPlayer = ({ url, camera }) => {
   const isAnyPopoverOpen = isStreamSettingsOpen || isUvcSettingsOpen;
 
   // Stream options sorting and selectors
-  const sortedResolutions = useMemo(() => {
-    if (!camera?.modes) return ["1920x1080", "1280x720"];
-    const rawResolutions = camera.modes.map((m) =>
-      typeof m === "object" ? m.resolution : m
-    );
-    return [...new Set(rawResolutions)].sort((a, b) => {
-      const [wA, hA] = a.trim().split("x").map(Number);
-      const [wB, hB] = b.trim().split("x").map(Number);
-      return wA - wB || hA - hB;
-    });
-  }, [camera?.modes]);
-
-  const sortedFps = useMemo(() => {
-    if (!camera?.modes) return ["30", "24", "60"];
-    let rawFps = [];
-    camera.modes.forEach((m) => {
-      if (typeof m === "object" && m.fps) {
-        if (Array.isArray(m.fps)) {
-          rawFps.push(...m.fps);
-        } else {
-          rawFps.push(m.fps);
-        }
-      }
-    });
-    if (rawFps.length === 0) {
-      rawFps = [30, 24, 60];
-    }
-    return [...new Set(rawFps.map(String))].sort(
-      (a, b) => Number(a) - Number(b)
-    );
-  }, [camera?.modes]);
+  const sortedResolutions = useMemo(() => getSortedResolutions(camera?.modes), [camera?.modes]);
+  const sortedFps = useMemo(() => getSortedFps(camera?.modes), [camera?.modes]);
 
   const displayRes = camera?.active_settings?.resolution || "1920x1080";
   const displayFps = camera?.active_settings?.fps || "30";
@@ -234,8 +206,11 @@ const WebRTCPlayer = ({ url, camera }) => {
   // Evitar que los controles se oculten cuando hay algún popover abierto en pantalla completa
   useEffect(() => {
     if (isAnyPopoverOpen) {
-      setShowControls(true);
+      const timer = setTimeout(() => {
+        setShowControls(true);
+      }, 0);
       if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
+      return () => clearTimeout(timer);
     } else if (isFullscreen) {
       if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
       controlsTimeoutRef.current = setTimeout(
