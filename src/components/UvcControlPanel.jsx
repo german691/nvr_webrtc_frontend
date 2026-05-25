@@ -2,7 +2,6 @@ import { useState, useRef, useEffect } from "react";
 import {
   Box,
   Flex,
-  Spinner,
   Switch,
   Text,
   VStack,
@@ -17,18 +16,18 @@ import {
 import { cameraApi } from "../api/camera.api";
 import { SlidersHorizontal, Minus, Plus } from "lucide-react";
 import { Tooltip } from "./ui/tooltip";
+import { BeatLoader } from "react-spinners";
 
 export const UvcControlPanel = ({
   cameraDev,
   size = "sm",
   variant = "outline",
-  borderRadius = "xl",
   buttonProps = {},
   onOpenChange,
 }) => {
+  const [isOpen, setIsOpen] = useState(false);
   const [hwControls, setHwControls] = useState([]);
   const [isLoadingControls, setIsLoadingControls] = useState(false);
-  const [isOpen, setIsOpen] = useState(false);
 
   const timeoutsRef = useRef({});
 
@@ -39,29 +38,35 @@ export const UvcControlPanel = ({
     };
   }, []);
 
-  const fetchHardwareControls = async () => {
-    if (hwControls.length === 0) {
-      setIsLoadingControls(true);
-      try {
-        const response = await cameraApi.getControls(cameraDev);
-        if (response.status === "success") {
-          setHwControls(response.controls);
-        }
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setIsLoadingControls(false);
-      }
-    }
-  };
-
-  const handleOpenChange = (details) => {
-    setIsOpen(details.open);
+  const handleOpenChange = async (details) => {
     if (details.open) {
-      fetchHardwareControls();
-    }
-    if (onOpenChange) {
-      onOpenChange(details.open);
+      if (hwControls.length === 0) {
+        setIsLoadingControls(true);
+        try {
+          const response = await cameraApi.getControls(cameraDev);
+          if (response.status === "success") {
+            setHwControls(response.controls);
+            setIsOpen(true);
+            if (onOpenChange) {
+              onOpenChange(true);
+            }
+          }
+        } catch (error) {
+          console.error(error);
+        } finally {
+          setIsLoadingControls(false);
+        }
+      } else {
+        setIsOpen(true);
+        if (onOpenChange) {
+          onOpenChange(true);
+        }
+      }
+    } else {
+      setIsOpen(false);
+      if (onOpenChange) {
+        onOpenChange(false);
+      }
     }
   };
 
@@ -146,18 +151,19 @@ export const UvcControlPanel = ({
       open={isOpen}
       onOpenChange={handleOpenChange}
       portalled={true}
-      unmountOnExit={false}
+      unmountOnExit={true}
     >
-      <Tooltip content="Ajustes de video" showArrow>
+      <Tooltip content={isLoadingControls ? "Leyendo microchip de cámara..." : "Ajustes de video"} showArrow>
         <span style={{ display: "inline-block" }}>
           <Popover.Trigger asChild>
             <IconButton
               size={size}
               variant={variant}
-              borderRadius={borderRadius}
               colorPalette="gray"
               borderColor={variant === "outline" ? "gray.200" : undefined}
               aria-label="Ajustes de video"
+              loading={isLoadingControls}
+              spinner={<BeatLoader size={size === "xs" ? 4 : 6} color="#4b5563" />}
               transition="all 0.2s"
               _hover={
                 variant === "ghost"
@@ -166,7 +172,7 @@ export const UvcControlPanel = ({
               }
               {...buttonProps}
             >
-              <SlidersHorizontal size={16} />
+              <SlidersHorizontal size={size === "xs" ? 14 : 16} />
             </IconButton>
           </Popover.Trigger>
         </span>
@@ -174,11 +180,12 @@ export const UvcControlPanel = ({
       <Portal>
         <Popover.Positioner zIndex={1600}>
           <Popover.Content
+            key={isLoadingControls ? "loading" : "loaded"}
             bg="white"
             borderColor="gray.200"
             shadow="lg"
             p={3}
-            borderRadius="xl"
+            borderRadius="lg"
             zIndex="popover"
             width="340px"
           >
@@ -196,7 +203,7 @@ export const UvcControlPanel = ({
                   direction="column"
                   gap={3}
                 >
-                  <Spinner size="md" colorPalette="blue" />
+                  <BeatLoader size={8} color="#2563eb" />
                   <Text fontSize="sm" color="gray.500">
                     Leyendo microchip...
                   </Text>

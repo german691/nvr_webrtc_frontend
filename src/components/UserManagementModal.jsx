@@ -9,11 +9,13 @@ import {
   Heading,
   HStack,
   Badge,
-  Spinner,
   IconButton,
-  NativeSelect,
   Center,
+  Portal,
+  Select,
+  createListCollection,
 } from "@chakra-ui/react";
+import { BeatLoader } from "react-spinners";
 import {
   User,
   UserPlus,
@@ -27,24 +29,79 @@ import {
   AlertCircle,
   CheckCircle,
   Users,
+  ArrowLeft,
 } from "lucide-react";
 import { cameraApi } from "../api/camera.api";
 
+// Colección para el Select de Chakra UI
+const roleCollection = createListCollection({
+  items: [
+    { value: "viewer", label: "Visor (Cámaras)" },
+    { value: "admin", label: "Administrador" },
+  ],
+});
+
 export const UserManagementModal = ({ isOpen, onClose }) => {
+  const modalBg = "white";
+  const modalBorder = "gray.200";
+  const headerBorder = "gray.100";
+  const headerBg = "gray.50";
+  const iconCenterBgForm = "blue.50";
+  const iconCenterBgList = "gray.100";
+  const iconCenterColorForm = "blue.600";
+  const iconCenterColorList = "gray.800";
+
+  const contentBg = "gray.50/50";
+  const labelColor = "gray.700";
+  const inputBg = "white";
+  const inputBorderColor = "gray.300";
+  const selectPopoverBg = "white";
+  const selectPopoverBorderColor = "gray.200";
+  const selectItemHoverBg = "gray.100";
+
+  const listCardBg = "white";
+  const listCardBorder = "gray.200";
+  const listCardHoverBorder = "gray.300";
+  const listCardIconBg = "gray.100";
+  const listCardIconColor = "gray.800";
+  const listCardTextColor = "gray.800";
+  const safetyNoteColor = "gray.500";
+
+  const deleteModalBg = "white";
+  const deleteModalBorder = "gray.200";
+  const deleteIconBg = "red.50";
+  const deleteIconColor = "red.500";
+  const deleteTitleColor = "gray.800";
+  const deleteTextColor = "gray.500";
+
+  const outlineBtnBorder = "gray.200";
+  const outlineBtnHoverBg = "gray.50";
+
   const [users, setUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState(null);
   const [successMsg, setSuccessMsg] = useState(null);
 
+  // Estados del formulario (ahora integrado en el mismo modal)
   const [isCreating, setIsCreating] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [resettingPasswordUser, setResettingPasswordUser] = useState(null);
 
+  // Campos del formulario
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("viewer");
   const [showPassword, setShowPassword] = useState(false);
+
+  // Estado de animación de cierre del modal completo
+  const [isClosing, setIsClosing] = useState(false);
+  const [isDeleteClosing, setIsDeleteClosing] = useState(false);
+
+  // Estado del modal de confirmación de eliminación
+  const [userToDelete, setUserToDelete] = useState(null);
+
+  const isFormOpen = isCreating || !!editingUser || !!resettingPasswordUser;
 
   const fetchUsers = async () => {
     setIsLoading(true);
@@ -96,6 +153,28 @@ export const UserManagementModal = ({ isOpen, onClose }) => {
       setError(msg);
       setTimeout(() => setError(null), 4000);
     }
+  };
+
+  // Manejador de Cierre con Transición del Modal Completo
+  const handleCloseModal = () => {
+    setIsClosing(true);
+    setTimeout(() => {
+      onClose();
+      setIsClosing(false);
+    }, 280);
+  };
+
+  const handleOpenDelete = (user) => {
+    setUserToDelete(user);
+    setIsDeleteClosing(false);
+  };
+
+  const handleCloseDelete = () => {
+    setIsDeleteClosing(true);
+    setTimeout(() => {
+      setUserToDelete(null);
+      setIsDeleteClosing(false);
+    }, 280);
   };
 
   const handleCreateUser = async (e) => {
@@ -197,10 +276,6 @@ export const UserManagementModal = ({ isOpen, onClose }) => {
   };
 
   const handleDeleteUser = async (userId) => {
-    if (!window.confirm("¿Está seguro de que desea eliminar a este usuario permanentemente?")) {
-      return;
-    }
-
     setActionLoading(true);
     setError(null);
 
@@ -209,6 +284,7 @@ export const UserManagementModal = ({ isOpen, onClose }) => {
       if (response && response.status === "success") {
         showNotification("Usuario eliminado correctamente.");
         fetchUsers();
+        handleCloseDelete();
       } else {
         setError(response.message || "Error al eliminar el usuario.");
       }
@@ -236,6 +312,7 @@ export const UserManagementModal = ({ isOpen, onClose }) => {
 
   return (
     <Box>
+      {/* CAPA DE FONDO DEL MODAL */}
       <Box
         position="fixed"
         top={0}
@@ -245,8 +322,8 @@ export const UserManagementModal = ({ isOpen, onClose }) => {
         bg="blackAlpha.600"
         backdropFilter="blur(8px)"
         zIndex={1900}
-        onClick={onClose}
-        animation="fade-in 0.25s ease-out forwards"
+        onClick={handleCloseModal}
+        className={isClosing ? "animate-backdrop-out" : "animate-backdrop-in"}
       />
 
       <Flex
@@ -264,49 +341,76 @@ export const UserManagementModal = ({ isOpen, onClose }) => {
         <Box
           w="full"
           maxW="2xl"
-          bg="white"
-          borderRadius="2xl"
+          bg={modalBg}
+          borderRadius="xl"
           borderWidth="1px"
-          borderColor="gray.200"
+          borderColor={modalBorder}
           shadow="2xl"
           pointerEvents="auto"
           display="flex"
           flexDirection="column"
           maxH="85vh"
           overflow="hidden"
-          animation="modal-content-scale-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards"
+          className={isClosing ? "animate-modal-out" : "animate-modal-in"}
+          transition="all 0.3s cubic-bezier(0.16, 1, 0.3, 1)"
         >
+          {/* HEADER DINÁMICO SEGÚN EL CONTENIDO */}
           <Flex
-            p={4}
+            p={3}
             borderBottomWidth="1px"
-            borderColor="gray.100"
+            borderColor={headerBorder}
             justify="space-between"
             align="center"
-            bg="gray.50"
+            bg={headerBg}
           >
             <HStack gap={3}>
-              <Box p={2} borderRadius="xl" bg="gray.100" color="gray.800">
-                <Users size={20} />
-              </Box>
+              <Center p={2} borderRadius="lg" bg={isFormOpen ? iconCenterBgForm : iconCenterBgList} color={isFormOpen ? iconCenterColorForm : iconCenterColorList}>
+                {isFormOpen ? (
+                  resettingPasswordUser ? <Key size={18} /> : <UserPlus size={18} />
+                ) : (
+                  <Users size={20} />
+                )}
+              </Center>
               <VStack align="stretch" gap={0}>
                 <Text fontWeight="bold" fontSize="md" color="gray.800">
-                  Gestión Administrativa de Usuarios
+                  {isCreating && "Registrar Nuevo Usuario"}
+                  {editingUser && "Editar Perfil de Usuario"}
+                  {resettingPasswordUser && "Restablecer Contraseña"}
+                  {!isFormOpen && "Gestión Administrativa de Usuarios"}
                 </Text>
                 <Text fontSize="2xs" color="gray.500">
-                  Crear, editar, restablecer contraseñas y eliminar accesos del NVR
+                  {isCreating && "Agrega una nueva cuenta de acceso al sistema"}
+                  {editingUser && `Modifica los privilegios del usuario: ${editingUser.username}`}
+                  {resettingPasswordUser && `Genera una clave temporal para: ${resettingPasswordUser.username}`}
+                  {!isFormOpen && "Crear, editar, restablecer contraseñas y eliminar accesos del NVR"}
                 </Text>
               </VStack>
             </HStack>
-            <IconButton
-              size="sm"
-              variant="ghost"
-              colorPalette="gray"
-              borderRadius="xl"
-              onClick={onClose}
-              aria-label="Cerrar modal"
-            >
-              <X size={18} />
-            </IconButton>
+
+            {isFormOpen ? (
+              <IconButton
+                size="sm"
+                variant="ghost"
+                colorPalette="gray"
+                borderRadius="xl"
+                onClick={resetForm}
+                title="Volver al listado"
+                aria-label="Volver al listado"
+              >
+                <ArrowLeft size={18} />
+              </IconButton>
+            ) : (
+              <IconButton
+                size="sm"
+                variant="ghost"
+                colorPalette="gray"
+                borderRadius="xl"
+                onClick={handleCloseModal}
+                aria-label="Cerrar modal"
+              >
+                <X size={18} />
+              </IconButton>
+            )}
           </Flex>
 
           {successMsg && (
@@ -349,126 +453,143 @@ export const UserManagementModal = ({ isOpen, onClose }) => {
             </Flex>
           )}
 
-          <Box flex="1" overflowY="auto" p={5} bg="gray.50/50">
-            {(isCreating || editingUser || resettingPasswordUser) && (
-              <Box
-                bg="rgba(255, 255, 255, 0.8)"
-                backdropFilter="blur(20px)"
-                borderWidth="1px"
-                borderColor="gray.200"
-                borderRadius="xl"
-                p={4}
-                mb={5}
-                shadow="sm"
-                animation="slide-down 0.25s ease-out"
+          {/* CONTENIDO DINÁMICO: FORMULARIO O LISTADO */}
+          <Box flex="1" overflowY="auto" p={4} bg={contentBg}>
+            {isFormOpen ? (
+              /* FORMULARIO DE ACCIONES */
+              <form
+                onSubmit={
+                  isCreating
+                    ? handleCreateUser
+                    : editingUser
+                    ? handleUpdateUser
+                    : handleResetPassword
+                }
               >
-                <Flex justify="space-between" align="center" mb={4}>
-                  <Heading size="xs" color="gray.700" fontWeight="bold">
-                    {isCreating && "Registrar Nuevo Usuario"}
-                    {editingUser && `Editar Perfil: ${editingUser.username}`}
-                    {resettingPasswordUser && `Restablecer Clave de: ${resettingPasswordUser.username}`}
-                  </Heading>
-                  <Button
-                    size="2xs"
-                    variant="ghost"
-                    colorPalette="red"
-                    borderRadius="lg"
-                    onClick={resetForm}
-                  >
-                    Cancelar
-                  </Button>
-                </Flex>
-
-                <form
-                  onSubmit={
-                    isCreating
-                      ? handleCreateUser
-                      : editingUser
-                      ? handleUpdateUser
-                      : handleResetPassword
-                  }
-                >
-                  <VStack gap={4} align="stretch">
-                    {!resettingPasswordUser && (
-                      <HStack gap={4} align="start">
-                        <Box flex="1">
-                          <Text fontSize="2xs" fontWeight="bold" color="gray.700" mb={1.5} textTransform="uppercase">
-                            Nombre de Usuario
-                          </Text>
-                          <Input
-                            placeholder="Ej. JuanPerez"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
-                            h="38px"
-                            borderRadius="lg"
-                            bg="white"
-                            fontSize="sm"
-                            disabled={actionLoading}
-                            required
-                          />
-                        </Box>
-
-                        <Box w="180px">
-                          <Text fontSize="2xs" fontWeight="bold" color="gray.700" mb={1.5} textTransform="uppercase">
-                            Rol del Usuario
-                          </Text>
-                          <NativeSelect.Root size="sm" h="38px" bg="white" borderRadius="lg">
-                            <NativeSelect.Field
-                              value={role}
-                              onChange={(e) => setRole(e.target.value)}
-                              disabled={actionLoading}
-                            >
-                              <option value="viewer">Visor (Cámaras)</option>
-                              <option value="admin">Administrador</option>
-                            </NativeSelect.Field>
-                          </NativeSelect.Root>
-                        </Box>
-                      </HStack>
-                    )}
-
-                    {(isCreating || resettingPasswordUser) && (
-                      <Box>
-                        <Text fontSize="2xs" fontWeight="bold" color="gray.700" mb={1.5} textTransform="uppercase">
-                          {resettingPasswordUser ? "Nueva Contraseña" : "Contraseña Inicial"}
+                <VStack gap={4} align="stretch" p={1}>
+                  {!resettingPasswordUser && (
+                    <HStack gap={3} align="start">
+                      <Box flex="1">
+                        <Text fontSize="2xs" fontWeight="bold" color={labelColor} mb={1.5} textTransform="uppercase">
+                          Nombre de Usuario
                         </Text>
-                        <Flex position="relative" align="center">
-                          <Input
-                            type={showPassword ? "text" : "password"}
-                            placeholder="Mínimo 6 caracteres"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            h="38px"
-                            borderRadius="lg"
-                            bg="white"
-                            fontSize="sm"
-                            disabled={actionLoading}
-                            pr="40px"
-                            required
-                          />
-                          <IconButton
-                            type="button"
-                            position="absolute"
-                            right="2"
-                            variant="ghost"
-                            h="28px"
-                            w="28px"
-                            p={0}
-                            minW="auto"
-                            color="gray.400"
-                            onClick={() => setShowPassword(!showPassword)}
-                            disabled={actionLoading}
-                          >
-                            {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
-                          </IconButton>
-                        </Flex>
-                        {isCreating && (
-                          <Text fontSize="3xs" color="gray.500" mt={1}>
-                            * Nota: Por seguridad, se obligará al usuario a redefinir esta clave en su primer acceso.
-                          </Text>
-                        )}
+                        <Input
+                          placeholder="Ej. JuanPerez"
+                          value={username}
+                          onChange={(e) => setUsername(e.target.value)}
+                          h="38px"
+                          borderRadius="lg"
+                          bg={inputBg}
+                          borderColor={inputBorderColor}
+                          fontSize="sm"
+                          disabled={actionLoading}
+                          required
+                        />
                       </Box>
-                    )}
 
+                      <Box w="180px">
+                        <Text fontSize="2xs" fontWeight="bold" color={labelColor} mb={1.5} textTransform="uppercase">
+                          Rol del Usuario
+                        </Text>
+                        <Select.Root
+                          size="sm"
+                          collection={roleCollection}
+                          value={[role]}
+                          onValueChange={(e) => setRole(e.value[0])}
+                          disabled={actionLoading}
+                        >
+                          <Select.HiddenSelect name="role" />
+                          <Select.Control>
+                            <Select.Trigger bg={inputBg} borderColor={inputBorderColor} borderRadius="lg" h="38px">
+                              <Select.ValueText placeholder="Seleccionar rol" />
+                            </Select.Trigger>
+                            <Select.IndicatorGroup>
+                              <Select.Indicator />
+                            </Select.IndicatorGroup>
+                          </Select.Control>
+                          <Select.Positioner>
+                            <Select.Content
+                              bg={selectPopoverBg}
+                              borderColor={selectPopoverBorderColor}
+                              shadow="md"
+                              borderRadius="lg"
+                              zIndex={2200}
+                            >
+                              {roleCollection.items.map((item) => (
+                                <Select.Item
+                                  item={item}
+                                  key={item.value}
+                                  _hover={{ bg: selectItemHoverBg }}
+                                >
+                                  {item.label}
+                                </Select.Item>
+                              ))}
+                            </Select.Content>
+                          </Select.Positioner>
+                        </Select.Root>
+                      </Box>
+                    </HStack>
+                  )}
+
+                  {(isCreating || resettingPasswordUser) && (
+                    <Box>
+                      <Text fontSize="2xs" fontWeight="bold" color={labelColor} mb={1.5} textTransform="uppercase">
+                        {resettingPasswordUser ? "Nueva Contraseña" : "Contraseña Inicial"}
+                      </Text>
+                      <Flex position="relative" align="center">
+                        <Input
+                          type={showPassword ? "text" : "password"}
+                          placeholder="Mínimo 6 caracteres"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          h="38px"
+                          borderRadius="lg"
+                          bg={inputBg}
+                          borderColor={inputBorderColor}
+                          fontSize="sm"
+                          disabled={actionLoading}
+                          pr="40px"
+                          required
+                        />
+                        <IconButton
+                          type="button"
+                          position="absolute"
+                          right="2"
+                          variant="ghost"
+                          h="28px"
+                          w="28px"
+                          p={0}
+                          minW="auto"
+                          color="gray.400"
+                          onClick={() => setShowPassword(!showPassword)}
+                          disabled={actionLoading}
+                        >
+                          {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                        </IconButton>
+                      </Flex>
+                      {isCreating && (
+                        <Text fontSize="2xs" color={safetyNoteColor} mt={1.5}>
+                          * Nota: Por seguridad, se obligará al usuario a redefinir esta clave en su primer acceso.
+                        </Text>
+                      )}
+                    </Box>
+                  )}
+
+                  <HStack gap={3} pt={2}>
+                    <Button
+                      variant="outline"
+                      colorPalette="gray"
+                      borderColor={outlineBtnBorder}
+                      _hover={{ bg: outlineBtnHoverBg }}
+                      onClick={resetForm}
+                      disabled={actionLoading}
+                      h="38px"
+                      flex="1"
+                      fontSize="xs"
+                      fontWeight="bold"
+                    >
+                      Cancelar
+                    </Button>
                     <Button
                       type="submit"
                       loading={actionLoading}
@@ -476,69 +597,66 @@ export const UserManagementModal = ({ isOpen, onClose }) => {
                       h="38px"
                       bg="blue.600"
                       color="white"
-                      borderRadius="lg"
                       fontSize="xs"
                       fontWeight="bold"
+                      flex="2"
                       _hover={{
                         bg: "blue.700",
                       }}
                     >
                       Guardar Cambios
                     </Button>
-                  </VStack>
-                </form>
-              </Box>
-            )}
-
-            {isLoading ? (
+                  </HStack>
+                </VStack>
+              </form>
+            ) : isLoading ? (
+              /* ESTADO DE CARGA DEL LISTADO */
               <Flex py={12} direction="column" align="center" gap={4}>
-                <Spinner color="blue.600" size="lg" />
+                <BeatLoader size={12} color="#2563eb" />
                 <Text fontSize="xs" color="gray.500">
                   Cargando listado de usuarios...
                 </Text>
               </Flex>
             ) : (
+              /* LISTADO DE USUARIOS */
               <Box>
-                {!isCreating && !editingUser && !resettingPasswordUser && (
-                  <Button
-                    size="sm"
-                    variant="solid"
-                    colorPalette="blue"
-                    borderRadius="xl"
-                    onClick={() => setIsCreating(true)}
-                    mb={4}
-                    gap={2}
-                  >
-                    <UserPlus size={14} />
-                    Registrar Nuevo Usuario
-                  </Button>
-                )}
+                <Button
+                  size="sm"
+                  variant="solid"
+                  colorPalette="blue"
+                  onClick={() => setIsCreating(true)}
+                  mb={4}
+                  gap={2}
+                >
+                  <UserPlus size={14} />
+                  Registrar Nuevo Usuario
+                </Button>
 
-                <VStack gap={3.5} align="stretch">
+                <VStack gap={2.5} align="stretch">
                   {users.map((user) => (
                     <Box
                       key={user.id}
-                      p={3.5}
-                      bg="white"
+                      p={2.5}
+                      bg={listCardBg}
                       borderWidth="1px"
-                      borderColor="gray.200"
-                      borderRadius="xl"
+                      borderColor={listCardBorder}
+                      borderRadius="lg"
                       shadow="xs"
                       transition="all 0.2s"
-                      _hover={{ shadow: "sm", borderColor: "gray.300" }}
+                      _hover={{ shadow: "sm", borderColor: listCardHoverBorder }}
                     >
                       <Flex justify="space-between" align="center" wrap="wrap" gap={3}>
                         <HStack gap={3}>
                           <Center
                             p={2.5}
                             borderRadius="full"
-                            bg="gray.100"
-                            color="gray.800"
+                            bg={listCardIconBg}
+                            color={listCardIconColor}
                           >
                             {user.role === "admin" ? <Shield size={16} /> : <User size={16} />}
                           </Center>
                           <VStack align="stretch" gap={0.5}>
-                            <Text fontWeight="bold" fontSize="sm" color="gray.800">
+                            <Text fontWeight="bold" fontSize="sm" color={listCardTextColor}>
                               {user.username}
                             </Text>
                             <HStack gap={2}>
@@ -571,7 +689,6 @@ export const UserManagementModal = ({ isOpen, onClose }) => {
                             size="xs"
                             variant="ghost"
                             colorPalette="gray"
-                            borderRadius="lg"
                             onClick={() => startEdit(user)}
                             title="Editar Perfil"
                             disabled={actionLoading}
@@ -582,7 +699,6 @@ export const UserManagementModal = ({ isOpen, onClose }) => {
                             size="xs"
                             variant="ghost"
                             colorPalette="gray"
-                            borderRadius="lg"
                             onClick={() => startResetPassword(user)}
                             title="Restablecer Contraseña"
                             disabled={actionLoading}
@@ -593,8 +709,7 @@ export const UserManagementModal = ({ isOpen, onClose }) => {
                             size="xs"
                             variant="ghost"
                             colorPalette="red"
-                            borderRadius="lg"
-                            onClick={() => handleDeleteUser(user.id)}
+                            onClick={() => handleOpenDelete(user)}
                             title="Eliminar Cuenta"
                             disabled={actionLoading}
                           >
@@ -610,6 +725,88 @@ export const UserManagementModal = ({ isOpen, onClose }) => {
           </Box>
         </Box>
       </Flex>
+
+      {/* POPUP ALERT DIALOG: CONFIRMACIÓN DE ELIMINACIÓN DE USUARIO */}
+      {userToDelete && (
+        <Portal>
+          <Box
+            position="fixed"
+            top={0}
+            left={0}
+            right={0}
+            bottom={0}
+            bg="blackAlpha.600"
+            backdropFilter="blur(4px)"
+            zIndex={2200}
+            onClick={handleCloseDelete}
+            className={isDeleteClosing ? "animate-backdrop-out" : "animate-backdrop-in"}
+          />
+          <Flex
+            position="fixed"
+            top={0}
+            left={0}
+            right={0}
+            bottom={0}
+            zIndex={2300}
+            align="center"
+            justify="center"
+            p={4}
+            pointerEvents="none"
+          >
+            <Box
+              w="full"
+              maxW="md"
+              bg={deleteModalBg}
+              borderRadius="xl"
+              borderWidth="1px"
+              borderColor={deleteModalBorder}
+              shadow="2xl"
+              pointerEvents="auto"
+              p={5}
+              className={isDeleteClosing ? "animate-modal-out" : "animate-modal-in"}
+            >
+              <VStack gap={4} align="center" textAlign="center">
+                <Center p={3} borderRadius="full" bg={deleteIconBg} color={deleteIconColor}>
+                  <AlertCircle size={28} />
+                </Center>
+                <VStack gap={1}>
+                  <Heading size="xs" color={deleteTitleColor} fontWeight="bold">
+                    ¿Eliminar cuenta de usuario?
+                  </Heading>
+                  <Text fontSize="xs" color={deleteTextColor}>
+                    ¿Está seguro de que desea eliminar al usuario <strong>{userToDelete.username}</strong>? Esta acción no se puede deshacer y revocará todos sus accesos de inmediato.
+                  </Text>
+                </VStack>
+                <HStack gap={3} w="full">
+                  <Button
+                    flex="1"
+                    variant="outline"
+                    colorPalette="gray"
+                    borderColor={outlineBtnBorder}
+                    _hover={{ bg: outlineBtnHoverBg }}
+                    size="sm"
+                    onClick={handleCloseDelete}
+                    disabled={actionLoading}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    flex="1"
+                    bg="red.600"
+                    color="white"
+                    size="sm"
+                    onClick={() => handleDeleteUser(userToDelete.id)}
+                    loading={actionLoading}
+                    _hover={{ bg: "red.700" }}
+                  >
+                    Eliminar Cuenta
+                  </Button>
+                </HStack>
+              </VStack>
+            </Box>
+          </Flex>
+        </Portal>
+      )}
     </Box>
   );
 };

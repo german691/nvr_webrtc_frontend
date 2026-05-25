@@ -147,15 +147,15 @@ const CameraControlCard = ({ camera }) => {
     <Box
       borderWidth="1px"
       borderColor="gray.200"
-      borderRadius="2xl"
-      p={3}
+      borderRadius="xl"
+      p={2}
       bg="white"
       transition="all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
       _hover={{
         borderColor: "gray.300",
       }}
     >
-      <HStack justify="space-between" mb={3.5}>
+      <HStack justify="space-between" mb={2}>
         <Text fontWeight="bold" fontSize="sm" color="gray.800" truncate>
           {formatDeviceName(camera.dev)}
         </Text>
@@ -171,22 +171,21 @@ const CameraControlCard = ({ camera }) => {
         </Badge>
       </HStack>
 
-      <VStack align="stretch" gap={3}>
+      <VStack align="stretch" gap={2}>
         <Flex gap={2} align="center">
           <Button
             flex="1"
-            variant={camera.streaming ? "surface" : "solid"}
+            variant={camera.streaming ? "subtle" : "solid"}
             size="sm"
-            colorPalette={camera.streaming ? "red" : "blue"}
+            colorPalette={camera.streaming ? "gray" : "blue"}
             onClick={handleToggle}
-            borderRadius="xl"
             fontWeight="semibold"
             transition="all 0.2s"
-            _hover={{ opacity: 0.9 }}
+            _hover={{ transform: "scale(1.01)" }}
             loading={isToggling}
-            spinner={<BeatLoader size={8} color={camera.streaming ? "#ef4444" : "white"} />}
+            spinner={<BeatLoader size={8} color={camera.streaming ? "#4b5563" : "white"} />}
           >
-            {camera.streaming ? "Apagar" : "Visualizar"}
+            {camera.streaming ? "Detener" : "Visualizar"}
           </Button>
 
           <Popover.Root portalled={true} unmountOnExit={false}>
@@ -201,7 +200,6 @@ const CameraControlCard = ({ camera }) => {
                     variant="outline"
                     colorPalette="gray"
                     borderColor="gray.200"
-                    borderRadius="xl"
                     aria-label="Configuración de transmisión"
                     transition="all 0.2s"
                     _hover={{ bg: "gray.50", borderColor: "gray.300" }}
@@ -218,8 +216,8 @@ const CameraControlCard = ({ camera }) => {
                   bg="white"
                   borderColor="gray.200"
                   shadow="lg"
-                  p={4}
-                  borderRadius="xl"
+                  p={3}
+                  borderRadius="lg"
                   zIndex="popover"
                 >
                   <Popover.Arrow />
@@ -228,11 +226,11 @@ const CameraControlCard = ({ camera }) => {
                       fontSize="xs"
                       fontWeight="bold"
                       color="gray.700"
-                      mb={3}
+                      mb={2}
                     >
                       Ajustes de Transmisión
                     </Text>
-                    <VStack align="stretch" gap={3}>
+                    <VStack align="stretch" gap={2}>
                       <StreamSettings
                         resolutions={sortedResolutions}
                         fpsOptions={sortedFps}

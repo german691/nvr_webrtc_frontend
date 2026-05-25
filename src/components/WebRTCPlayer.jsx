@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useMemo } from "react";
-import { Box, HStack, IconButton, Popover, Text, VStack, Portal, Center } from "@chakra-ui/react";
+import { Box, HStack, Popover, Text, VStack, Portal, Center } from "@chakra-ui/react";
 import {
   Camera,
   ZoomIn,
@@ -15,26 +15,25 @@ import { useDispatch } from "react-redux";
 import { toggleStream } from "../store/slices/cameraSlice";
 import { StreamSettings } from "./StreamSettings.jsx";
 import { UvcControlPanel } from "./UvcControlPanel.jsx";
-import { Tooltip } from "./ui/tooltip";
+import PlayerButton from "./ui/PlayerButton";
+import { useVideoZoom } from "../hooks/useVideoZoom";
+import { useLocalRecorder } from "../hooks/useLocalRecorder";
 import { getSortedResolutions, getSortedFps } from "../utils/camera.js";
 
-const WebRTCPlayer = ({ url, camera }) => {
+/**
+ * Componente Reproductor WebRTC en tiempo real.
+ * Renderiza el stream de video de cámaras WebRTC y proporciona una barra
+ * de controles compacta y premium (zoom, paneo, grabaciones, capturas, popovers).
+ */
+export const WebRTCPlayer = ({ url, camera }) => {
   const dispatch = useDispatch();
   const containerRef = useRef(null);
   const videoRef = useRef(null);
   const pcRef = useRef(null);
-  const mediaRecorderRef = useRef(null);
-  const fileStreamRef = useRef(null);
-  const chunksRef = useRef([]);
   const controlsTimeoutRef = useRef(null);
 
-  const [isRecording, setIsRecording] = useState(false);
-  const [scale, setScale] = useState(1);
-  const [position, setPosition] = useState({ x: 0, y: 0 });
-  const [isDragging, setIsDragging] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showControls, setShowControls] = useState(false);
-  const dragStart = useRef({ x: 0, y: 0 });
 
   // Popover open states to manage controls visibility in fullscreen
   const [isStreamSettingsOpen, setIsStreamSettingsOpen] = useState(false);
@@ -42,6 +41,22 @@ const WebRTCPlayer = ({ url, camera }) => {
   const [isToggling, setIsToggling] = useState(false);
 
   const isAnyPopoverOpen = isStreamSettingsOpen || isUvcSettingsOpen;
+
+  // Extraer lógica de zoom/paneo y grabación local de evidencia en hooks especializados
+  const {
+    scale,
+    position,
+    isDragging,
+    handleZoomIn,
+    handleZoomOut,
+    handleResetZoom,
+    handleWheel,
+    handleMouseDown,
+    handleMouseMove: zoomMouseMove,
+    handleMouseUp,
+  } = useVideoZoom();
+
+  const { isRecording, startRecording, stopRecording } = useLocalRecorder();
 
   // Stream options sorting and selectors
   const sortedResolutions = useMemo(() => getSortedResolutions(camera?.modes), [camera?.modes]);
@@ -114,13 +129,11 @@ const WebRTCPlayer = ({ url, camera }) => {
     }
   };
 
-  // --- WEBRTC ---
+  // --- WEBRTC CONNECTION LIFECYCLE ---
   useEffect(() => {
     if (!url) return;
 
     if (url.startsWith("mock://")) {
-      // Cámara virtual estática optimizada: no requiere stream ni canvas en el reproductor.
-      // Se renderiza un contenedor puramente estático en el JSX para consumir 0 recursos.
       return;
     }
 
@@ -220,88 +233,6 @@ const WebRTCPlayer = ({ url, camera }) => {
     }
   }, [isAnyPopoverOpen, isFullscreen]);
 
-  // --- RECORDING ---
-  const handleStartRecording = async () => {
-    if (!videoRef.current || !videoRef.current.srcObject) return;
-
-    const stream = videoRef.current.srcObject;
-    const recorder = new MediaRecorder(stream, { mimeType: "video/webm" });
-    mediaRecorderRef.current = recorder;
-
-    if ("showSaveFilePicker" in window) {
-      try {
-        const fileHandle = await window.showSaveFilePicker({
-          suggestedName: `Evidencia_NVR_${new Date().getTime()}.webm`,
-          types: [
-            {
-              description: "Video H.264 (WebM)",
-              accept: { "video/webm": [".webm"] },
-            },
-          ],
-        });
-
-        const writableStream = await fileHandle.createWritable();
-        fileStreamRef.current = writableStream;
-
-        recorder.ondataavailable = async (e) => {
-          if (e.data.size > 0 && fileStreamRef.current) {
-            await fileStreamRef.current.write(e.data);
-          }
-        };
-
-        recorder.onstop = async () => {
-          if (fileStreamRef.current) {
-            await fileStreamRef.current.close();
-            fileStreamRef.current = null;
-          }
-        };
-
-        recorder.start(1000);
-        setIsRecording(true);
-        return;
-      } catch (err) {
-        if (err.name === "AbortError") return;
-        console.warn(
-          "No se pudo usar acceso directo a disco. Pasando a Plan B (RAM)...",
-        );
-      }
-    }
-
-    chunksRef.current = [];
-
-    recorder.ondataavailable = (e) => {
-      if (e.data.size > 0) {
-        chunksRef.current.push(e.data);
-      }
-    };
-
-    recorder.onstop = () => {
-      const blob = new Blob(chunksRef.current, { type: "video/webm" });
-      const objectUrl = URL.createObjectURL(blob);
-
-      const a = document.createElement("a");
-      a.style.display = "none";
-      a.href = objectUrl;
-      a.download = `Evidencia_NVR_${new Date().getTime()}.webm`;
-      document.body.appendChild(a);
-      a.click();
-
-      window.URL.revokeObjectURL(objectUrl);
-      document.body.removeChild(a);
-      chunksRef.current = [];
-    };
-
-    recorder.start(1000);
-    setIsRecording(true);
-  };
-
-  const handleStopRecording = () => {
-    if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop();
-      setIsRecording(false);
-    }
-  };
-
   // --- SCREENSHOT ---
   const handleScreenshot = () => {
     if (!videoRef.current) return;
@@ -321,54 +252,11 @@ const WebRTCPlayer = ({ url, camera }) => {
     a.click();
   };
 
-  // --- ZOOM & PAN ---
-  const handleZoomIn = () => {
-    setScale((prev) => Math.min(prev + 0.5, 4));
-  };
-
-  const handleZoomOut = () => {
-    setScale((prev) => {
-      const newScale = Math.max(prev - 0.5, 1);
-      if (newScale === 1) setPosition({ x: 0, y: 0 });
-      return newScale;
-    });
-  };
-
-  const handleResetZoom = () => {
-    setScale(1);
-    setPosition({ x: 0, y: 0 });
-  };
-
-  const handleWheel = (e) => {
-    const zoomSensitivity = 0.2;
-    setScale((prev) => {
-      const delta = e.deltaY < 0 ? zoomSensitivity : -zoomSensitivity;
-      const newScale = Math.min(Math.max(prev + delta, 1), 4);
-      if (newScale === 1) setPosition({ x: 0, y: 0 });
-      return newScale;
-    });
-  };
-
-  const handleMouseDown = (e) => {
-    if (scale > 1) {
-      setIsDragging(true);
-      dragStart.current = {
-        x: e.clientX - position.x,
-        y: e.clientY - position.y,
-      };
-    }
-  };
-
   const handleMouseMove = (e) => {
-    // 1. Lógica de paneo
-    if (isDragging && scale > 1) {
-      setPosition({
-        x: e.clientX - dragStart.current.x,
-        y: e.clientY - dragStart.current.y,
-      });
-    }
+    // 1. Manejo de zoom y arrastre por arrastre de mouse
+    zoomMouseMove(e);
 
-    // 2. Lógica de auto-ocultado de controles en FullScreen
+    // 2. Temporizador para ocultar controles en pantalla completa
     if (isFullscreen && !isAnyPopoverOpen) {
       setShowControls(true);
       if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
@@ -377,10 +265,6 @@ const WebRTCPlayer = ({ url, camera }) => {
         1000,
       );
     }
-  };
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
   };
 
   // --- FULLSCREEN ---
@@ -465,14 +349,12 @@ const WebRTCPlayer = ({ url, camera }) => {
         position="absolute"
         bottom={3}
         right={3}
-        bg="whiteAlpha.800"
+        bg="rgba(255, 255, 255, 0.85)"
         backdropFilter="blur(8px)"
-        p={1.5}
+        p="4px 6px"
         borderRadius="xl"
-        borderWidth="1px"
-        borderColor="whiteAlpha.350"
         shadow="md"
-        gap={1.5}
+        gap={1}
         zIndex={10}
         opacity={showControls ? 1 : 0}
         pointerEvents={showControls ? "auto" : "none"}
@@ -480,7 +362,6 @@ const WebRTCPlayer = ({ url, camera }) => {
         onMouseDown={(e) => e.stopPropagation()}
         onDoubleClick={(e) => e.stopPropagation()}
         onMouseEnter={() => {
-          // Mantener visible si el usuario tiene el mouse sobre la barra
           if (isFullscreen) {
             setShowControls(true);
             if (controlsTimeoutRef.current)
@@ -488,7 +369,6 @@ const WebRTCPlayer = ({ url, camera }) => {
           }
         }}
         onMouseLeave={() => {
-          // Reanudar el temporizador si el usuario saca el mouse de la barra
           if (isFullscreen) {
             controlsTimeoutRef.current = setTimeout(
               () => setShowControls(false),
@@ -502,7 +382,6 @@ const WebRTCPlayer = ({ url, camera }) => {
             cameraDev={camera.dev}
             size="xs"
             variant="ghost"
-            borderRadius="lg"
             buttonProps={{
               _hover: { bg: "blackAlpha.100" }
             }}
@@ -517,26 +396,14 @@ const WebRTCPlayer = ({ url, camera }) => {
             portalled={true}
             unmountOnExit={false}
           >
-            <Tooltip
-              content="Ajustes de Transmisión (Resolución y FPS)"
-              showArrow
+            <PlayerButton
+              tooltip="Ajustes de Transmisión (Resolución y FPS)"
+              ariaLabel="Configuración de transmisión"
             >
-              <span style={{ display: "inline-block" }}>
-                <Popover.Trigger asChild>
-                  <IconButton
-                    size="xs"
-                    variant="ghost"
-                    borderRadius="lg"
-                    colorPalette="gray"
-                    aria-label="Configuración de transmisión"
-                    transition="all 0.2s"
-                    _hover={{ bg: "blackAlpha.100" }}
-                  >
-                    <Settings size={16} />
-                  </IconButton>
-                </Popover.Trigger>
-              </span>
-            </Tooltip>
+              <Popover.Trigger asChild>
+                <Settings size={14} />
+              </Popover.Trigger>
+            </PlayerButton>
             <Portal>
               <Popover.Positioner zIndex={1600}>
                 <Popover.Content
@@ -573,102 +440,68 @@ const WebRTCPlayer = ({ url, camera }) => {
           </Popover.Root>
         )}
 
-        <Tooltip content={isFullscreen ? "Salir de Pantalla Completa" : "Pantalla Completa"} showArrow>
-          <IconButton
-            size="xs"
-            variant="ghost"
-            borderRadius="lg"
-            colorPalette="gray"
-            aria-label="Pantalla Completa"
-            onClick={toggleFullScreen}
-            transition="all 0.2s"
-            _hover={{ bg: "blackAlpha.100" }}
-          >
-            {isFullscreen ? <Minimize size={16} /> : <Maximize size={16} />}
-          </IconButton>
-        </Tooltip>
+        <PlayerButton
+          tooltip={isFullscreen ? "Salir de Pantalla Completa" : "Pantalla Completa"}
+          ariaLabel="Pantalla Completa"
+          onClick={toggleFullScreen}
+        >
+          {isFullscreen ? <Minimize size={14} /> : <Maximize size={14} />}
+        </PlayerButton>
 
-        <Tooltip content="Tomar Captura de Imagen" showArrow>
-          <IconButton
-            size="xs"
-            variant="ghost"
-            borderRadius="lg"
-            colorPalette="gray"
-            aria-label="Tomar Captura"
-            onClick={handleScreenshot}
-            transition="all 0.2s"
-            _hover={{ bg: "blackAlpha.100" }}
-          >
-            <Camera size={16} />
-          </IconButton>
-        </Tooltip>
+        <PlayerButton
+          tooltip="Tomar Captura de Imagen"
+          ariaLabel="Tomar Captura"
+          onClick={handleScreenshot}
+        >
+          <Camera size={14} />
+        </PlayerButton>
 
-        <Tooltip content="Restablecer Zoom y Paneo" showArrow>
-          <IconButton
-            size="xs"
-            variant="ghost"
-            borderRadius="lg"
-            colorPalette="gray"
-            aria-label="Restablecer Zoom"
-            onClick={handleResetZoom}
-            disabled={scale === 1}
-            transition="all 0.2s"
-            _hover={{ bg: "blackAlpha.100" }}
-          >
-            <Focus size={16} />
-          </IconButton>
-        </Tooltip>
+        <PlayerButton
+          tooltip="Restablecer Zoom y Paneo"
+          ariaLabel="Restablecer Zoom"
+          onClick={handleResetZoom}
+          disabled={scale === 1}
+        >
+          <Focus size={14} />
+        </PlayerButton>
 
-        <Tooltip content="Acercar Zoom" showArrow>
-          <IconButton
-            size="xs"
-            variant="ghost"
-            borderRadius="lg"
-            colorPalette="gray"
-            aria-label="Acercar"
-            onClick={handleZoomIn}
-            disabled={scale >= 4}
-            transition="all 0.2s"
-            _hover={{ bg: "blackAlpha.100" }}
-          >
-            <ZoomIn size={16} />
-          </IconButton>
-        </Tooltip>
+        <PlayerButton
+          tooltip="Acercar Zoom"
+          ariaLabel="Acercar"
+          onClick={handleZoomIn}
+          disabled={scale >= 4}
+        >
+          <ZoomIn size={14} />
+        </PlayerButton>
 
-        <Tooltip content="Alejar Zoom" showArrow>
-          <IconButton
-            size="xs"
-            variant="ghost"
-            borderRadius="lg"
-            colorPalette="gray"
-            aria-label="Alejar"
-            onClick={handleZoomOut}
-            disabled={scale <= 1}
-            transition="all 0.2s"
-            _hover={{ bg: "blackAlpha.100" }}
-          >
-            <ZoomOut size={16} />
-          </IconButton>
-        </Tooltip>
+        <PlayerButton
+          tooltip="Alejar Zoom"
+          ariaLabel="Alejar"
+          onClick={handleZoomOut}
+          disabled={scale <= 1}
+        >
+          <ZoomOut size={14} />
+        </PlayerButton>
 
-        <Tooltip content={isRecording ? "Detener Grabación de Video" : "Grabar Video Local"} showArrow>
-          <IconButton
-            size="xs"
-            borderRadius="lg"
-            colorPalette={isRecording ? "red" : "blue"}
-            aria-label={isRecording ? "Detener Grabación" : "Grabar"}
-            onClick={isRecording ? handleStopRecording : handleStartRecording}
-            transition="all 0.2s"
-            boxShadow={isRecording ? "0 0 10px rgba(239, 68, 68, 0.5)" : "none"}
-            _hover={{ opacity: 0.9 }}
-          >
-            {isRecording ? (
-              <Square size={16} fill="currentColor" />
-            ) : (
-              <Video size={16} />
-            )}
-          </IconButton>
-        </Tooltip>
+        <PlayerButton
+          tooltip={isRecording ? "Detener Grabación de Video" : "Grabar Video Local"}
+          ariaLabel={isRecording ? "Detener Grabación" : "Grabar"}
+          onClick={isRecording ? stopRecording : () => startRecording(videoRef)}
+          colorPalette={isRecording ? "red" : "gray"}
+          color={isRecording ? "red.600" : "gray.700"}
+          boxShadow={isRecording ? "0 0 10px rgba(239, 68, 68, 0.2)" : "none"}
+          _hover={
+            isRecording
+              ? { bg: "red.50", transform: "scale(1.03)" }
+              : { bg: "blackAlpha.100", transform: "scale(1.03)" }
+          }
+        >
+          {isRecording ? (
+            <Square size={14} fill="currentColor" />
+          ) : (
+            <Video size={14} />
+          )}
+        </PlayerButton>
       </HStack>
     </Box>
   );

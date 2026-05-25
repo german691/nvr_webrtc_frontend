@@ -32,6 +32,24 @@ import { cameraApi } from "../api/camera.api.js";
 
 
 const Sidebar = () => {
+  const sidebarBg = "white";
+  const headerBorder = "gray.100";
+  const headerHeadingColor = "black";
+  const collapseBtnHoverBg = "gray.100";
+  const collapseBtnHoverColor = "gray.900";
+
+  const collapsedBubbleBgStreaming = "blue.50";
+  const collapsedBubbleBgIdle = "gray.50";
+  const collapsedBubbleBorderIdle = "gray.200";
+  const collapsedBubbleColorStreaming = "blue.600";
+  const collapsedBubbleColorIdle = "gray.500";
+  const collapsedBubbleHoverBorderIdle = "gray.400";
+  const collapsedBubbleHoverBgStreaming = "blue.100";
+  const collapsedBubbleHoverBgIdle = "gray.100";
+
+  const footerBorder = "gray.100";
+  const footerBg = "white";
+
   const { list, isLoading, error } = useSelector((state) => state.cameras);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isUserManagementOpen, setIsUserManagementOpen] = useState(false);
@@ -108,10 +126,10 @@ const Sidebar = () => {
 
   return (
     <Box
-      w={isCollapsed ? "68px" : "320px"}
+      w={isCollapsed ? "60px" : "270px"}
       transition="width 0.35s cubic-bezier(0.4, 0, 0.2, 1)"
       h="100%"
-      bg="white"
+      bg={sidebarBg}
       display="flex"
       flexDirection="column"
       overflow="hidden"
@@ -119,9 +137,9 @@ const Sidebar = () => {
     >
       <Flex
         flexShrink={0}
-        p={3}
+        p={2}
         borderBottomWidth="1px"
-        borderColor="gray.100"
+        borderColor={headerBorder}
         justifyContent={isCollapsed ? "center" : "space-between"}
         alignItems="center"
         w="full"
@@ -161,7 +179,7 @@ const Sidebar = () => {
           >
             <Heading
               size="md"
-              color="black"
+              color={headerHeadingColor}
               letterSpacing="tight"
               whiteSpace="nowrap"
             >
@@ -194,8 +212,7 @@ const Sidebar = () => {
           size="sm"
           variant="ghost"
           color="gray.500"
-          borderRadius="xl"
-          _hover={{ bg: "gray.100", color: "gray.900" }}
+          _hover={{ bg: collapseBtnHoverBg, color: collapseBtnHoverColor }}
           onClick={() => setIsCollapsed(!isCollapsed)}
           transition="transform 0.3s ease"
           transform={isCollapsed ? "rotate(180deg)" : "rotate(0)"}
@@ -212,13 +229,13 @@ const Sidebar = () => {
           right={0}
           bottom={0}
           overflowY="auto"
-          p={3}
+          p={2}
           opacity={isCollapsed ? 0 : 1}
           pointerEvents={isCollapsed ? "none" : "auto"}
           transition="opacity 0.25s ease-in-out, transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
           transform={isCollapsed ? "translateY(10px)" : "translateY(0)"}
         >
-          <VStack gap={3} align="stretch">
+          <VStack gap={2} align="stretch">
             {list.map((cam) => (
               <CameraControlCard key={cam.dev} camera={cam} />
             ))}
@@ -232,14 +249,14 @@ const Sidebar = () => {
           right={0}
           bottom={0}
           overflowY="auto"
-          py={3}
-          px={1.5}
+          py={2}
+          px={1}
           opacity={isCollapsed ? 1 : 0}
           pointerEvents={isCollapsed ? "auto" : "none"}
           transition="opacity 0.25s ease-in-out, transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
           transform={isCollapsed ? "translateY(0)" : "translateY(-10px)"}
         >
-          <VStack gap={3} w="full" align="center">
+          <VStack gap={2} w="full" align="center">
             {list.map((cam) => {
               const isStreaming = cam.streaming;
               const titleText = `${formatDeviceName(cam.dev)} - ${
@@ -256,16 +273,16 @@ const Sidebar = () => {
                     position="relative"
                     p={2.5}
                     borderRadius="full"
-                    bg={isStreaming ? "blue.50" : "gray.50"}
+                    bg={isStreaming ? collapsedBubbleBgStreaming : collapsedBubbleBgIdle}
                     borderWidth="2px"
-                    borderColor={isStreaming ? "blue.500" : "gray.200"}
-                    color={isStreaming ? "blue.600" : "gray.500"}
+                    borderColor={isStreaming ? "blue.500" : collapsedBubbleBorderIdle}
+                    color={isStreaming ? collapsedBubbleColorStreaming : collapsedBubbleColorIdle}
                     cursor="pointer"
                     onClick={() => setIsCollapsed(false)}
                     transition="all 0.2s cubic-bezier(0.4, 0, 0.2, 1)"
                     _hover={{
-                      borderColor: isStreaming ? "blue.600" : "gray.400",
-                      bg: isStreaming ? "blue.100" : "gray.100",
+                      borderColor: isStreaming ? "blue.600" : collapsedBubbleHoverBorderIdle,
+                      bg: isStreaming ? collapsedBubbleHoverBgStreaming : collapsedBubbleHoverBgIdle,
                       boxShadow: isStreaming ? "0 0 10px rgba(37, 99, 235, 0.2)" : "none"
                     }}
                   >
@@ -293,10 +310,10 @@ const Sidebar = () => {
 
       <Box
         flexShrink={0}
-        p={3}
+        p={2}
         borderTopWidth="1px"
-        borderColor="gray.100"
-        bg="white"
+        borderColor={footerBorder}
+        bg={footerBg}
         w="full"
         zIndex={10}
       >
@@ -307,7 +324,6 @@ const Sidebar = () => {
                 size="sm"
                 variant="surface"
                 colorPalette="gray"
-                borderRadius="xl"
                 aria-label="Estado FFmpeg"
                 onClick={handleOpenDebug}
               >
@@ -320,7 +336,6 @@ const Sidebar = () => {
                   size="sm"
                   variant="surface"
                   colorPalette="blue"
-                  borderRadius="xl"
                   aria-label="Gestión de Usuarios"
                   onClick={() => setIsUserManagementOpen(true)}
                 >
@@ -334,7 +349,6 @@ const Sidebar = () => {
                 size="sm"
                 variant="surface"
                 colorPalette="red"
-                borderRadius="xl"
                 aria-label="Cerrar sesión"
                 onClick={handleLogout}
               >
@@ -349,7 +363,6 @@ const Sidebar = () => {
               variant="surface"
               colorPalette="gray"
               size="sm"
-              borderRadius="xl"
               onClick={handleOpenDebug}
               fontWeight="semibold"
               justifyContent="center"
@@ -364,7 +377,6 @@ const Sidebar = () => {
                   size="sm"
                   variant="surface"
                   colorPalette="blue"
-                  borderRadius="xl"
                   aria-label="Gestión de Usuarios"
                   onClick={() => setIsUserManagementOpen(true)}
                 >
@@ -378,7 +390,6 @@ const Sidebar = () => {
                 size="sm"
                 variant="surface"
                 colorPalette="red"
-                borderRadius="xl"
                 aria-label="Cerrar sesión"
                 onClick={handleLogout}
               >

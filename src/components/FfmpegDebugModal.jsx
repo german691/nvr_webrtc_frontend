@@ -31,6 +31,13 @@ import { fetchCameras } from "../store/slices/cameraSlice";
 export const FfmpegDebugModal = ({ isOpen, onClose, isClosing }) => {
   const dispatch = useDispatch();
 
+  const modalBg = "white";
+  const modalBorder = "gray.200";
+  const headerBorder = "gray.100";
+  const headerBg = "gray.50";
+  const iconCenterBg = "blue.50";
+  const iconCenterColor = "blue.600";
+
   // Estados locales para la depuración de FFmpeg
   const [debugStreams, setDebugStreams] = useState([]);
   const [isDebuggingLoading, setIsDebuggingLoading] = useState(false);
@@ -153,10 +160,10 @@ export const FfmpegDebugModal = ({ isOpen, onClose, isClosing }) => {
         <Box
           w="full"
           maxW="2xl"
-          bg="white"
-          borderRadius="2xl"
+          bg={modalBg}
+          borderRadius="xl"
           borderWidth="1px"
-          borderColor="gray.200"
+          borderColor={modalBorder}
           shadow="2xl"
           pointerEvents="auto"
           display="flex"
@@ -167,15 +174,15 @@ export const FfmpegDebugModal = ({ isOpen, onClose, isClosing }) => {
           transition="all 0.3s cubic-bezier(0.16, 1, 0.3, 1)"
         >
           <Flex
-            p={4}
+            p={3}
             borderBottomWidth="1px"
-            borderColor="gray.100"
+            borderColor={headerBorder}
             justify="space-between"
             align="center"
-            bg="gray.50"
+            bg={headerBg}
           >
             <HStack gap={3}>
-              <Center p={2} borderRadius="xl" bg="blue.50" color="blue.600">
+              <Center p={2} borderRadius="xl" bg={iconCenterBg} color={iconCenterColor}>
                 <Activity size={20} />
               </Center>
               <VStack align="stretch" gap={0}>
@@ -201,7 +208,6 @@ export const FfmpegDebugModal = ({ isOpen, onClose, isClosing }) => {
                   variant="subtle"
                   colorPalette="red"
                   onClick={handleKillAll}
-                  borderRadius="xl"
                   gap={1}
                 >
                   <Trash2 size={12} />
@@ -215,7 +221,6 @@ export const FfmpegDebugModal = ({ isOpen, onClose, isClosing }) => {
                 onClick={fetchFfmpegDebug}
                 title="Actualizar datos"
                 disabled={isDebuggingLoading}
-                borderRadius="xl"
               >
                 <RefreshCw size={16} className={isDebuggingLoading ? "spin-animation" : ""} />
               </IconButton>
@@ -224,14 +229,13 @@ export const FfmpegDebugModal = ({ isOpen, onClose, isClosing }) => {
                 variant="ghost"
                 colorPalette="red"
                 onClick={onClose}
-                borderRadius="xl"
               >
                 Cerrar
               </Button>
             </HStack>
           </Flex>
 
-          <Box flex="1" overflowY="auto" p={4} bg="gray.50/50">
+          <Box flex="1" overflowY="auto" p={3} bg="gray.50/50">
             {isDebuggingLoading && (
               <Center py={16} flexDirection="column" gap={4}>
                 <BeatLoader size={12} color="#2563eb" />
@@ -246,7 +250,7 @@ export const FfmpegDebugModal = ({ isOpen, onClose, isClosing }) => {
                 <Text color="red.500" fontWeight="medium" fontSize="sm" textAlign="center">
                   {debugError}
                 </Text>
-                <Button size="sm" variant="subtle" colorPalette="blue" onClick={fetchFfmpegDebug} borderRadius="xl">
+                <Button size="sm" variant="subtle" colorPalette="blue" onClick={fetchFfmpegDebug}>
                   Reintentar Consulta
                 </Button>
               </Center>
@@ -276,8 +280,8 @@ export const FfmpegDebugModal = ({ isOpen, onClose, isClosing }) => {
                     key={stream.pid}
                     borderWidth="1px"
                     borderColor="gray.200"
-                    borderRadius="xl"
-                    p={4}
+                    borderRadius="lg"
+                    p={3}
                     bg="white"
                     shadow="sm"
                     transition="all 0.2s"
@@ -298,7 +302,6 @@ export const FfmpegDebugModal = ({ isOpen, onClose, isClosing }) => {
                           size="2xs"
                           variant="subtle"
                           colorPalette="red"
-                          borderRadius="lg"
                           aria-label="Detener transmisión"
                           onClick={() => handleKillProcess(stream.pid)}
                           disabled={killingPids.has(stream.pid)}
@@ -379,7 +382,7 @@ export const FfmpegDebugModal = ({ isOpen, onClose, isClosing }) => {
                     </HStack>
 
                     {stream.rtspUrl !== "N/A" && (
-                      <Box p={2.5} bg="gray.50" borderRadius="xl" borderWidth="1px" borderColor="gray.200" mb={2}>
+                      <Box p={2} bg="gray.50" borderRadius="lg" borderWidth="1px" borderColor="gray.200" mb={2}>
                         <Flex align="center" justify="space-between" gap={2}>
                           <VStack align="stretch" gap={0.5} overflow="hidden" flex="1">
                             <Text fontSize="3xs" fontWeight="bold" color="gray.400" letterSpacing="wider">URL DE SALIDA RTSP</Text>
@@ -392,7 +395,6 @@ export const FfmpegDebugModal = ({ isOpen, onClose, isClosing }) => {
                             variant="subtle"
                             colorPalette={copiedPid === stream.pid ? "green" : "blue"}
                             onClick={() => handleCopy(stream.rtspUrl, stream.pid)}
-                            borderRadius="lg"
                             gap={1}
                             flexShrink={0}
                           >

@@ -9,14 +9,19 @@ import {
   Heading,
   Image,
 } from "@chakra-ui/react";
-import { Lock, User, AlertCircle, Eye, EyeOff } from "lucide-react";
+import { User, AlertCircle } from "lucide-react";
 import { cameraApi } from "../api/camera.api";
 import logoImg from "../assets/logof.png";
+import ScreenLayout from "./ui/ScreenLayout";
+import PasswordInput from "./ui/PasswordInput";
 
+/**
+ * Vista de Inicio de Sesión de la aplicación.
+ * Compone la presentación usando ScreenLayout y PasswordInput.
+ */
 export const Login = ({ onLoginSuccess }) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -33,7 +38,12 @@ export const Login = ({ onLoginSuccess }) => {
     try {
       const response = await cameraApi.login(username, password);
       if (response && response.status === "success" && response.token) {
-        onLoginSuccess(response.token, response.username, response.role, response.needsPasswordChange);
+        onLoginSuccess(
+          response.token,
+          response.username,
+          response.role,
+          response.needsPasswordChange,
+        );
       } else {
         setError(response.message || "Error al iniciar sesión.");
       }
@@ -49,57 +59,7 @@ export const Login = ({ onLoginSuccess }) => {
   };
 
   return (
-    <Flex
-      position="relative"
-      h="100vh"
-      w="100vw"
-      bg="#f8fafc"
-      align="center"
-      justify="center"
-      overflow="hidden"
-      p={4}
-    >
-      {/* 1. Círculos dinámicos con gradientes pastel para el efecto Glassmorphism */}
-      <Box
-        position="absolute"
-        top="5%"
-        left="10%"
-        w="450px"
-        h="450px"
-        bgGradient="radial(circle, rgba(6, 182, 212, 0.08) 0%, rgba(6, 182, 212, 0) 70%)"
-        borderRadius="full"
-        filter="blur(60px)"
-        className="float-slow-bg"
-        pointerEvents="none"
-        zIndex={1}
-      />
-      <Box
-        position="absolute"
-        bottom="8%"
-        right="8%"
-        w="500px"
-        h="500px"
-        bgGradient="radial(circle, rgba(59, 130, 246, 0.08) 0%, rgba(59, 130, 246, 0) 70%)"
-        borderRadius="full"
-        filter="blur(70px)"
-        className="float-reverse-bg"
-        pointerEvents="none"
-        zIndex={1}
-      />
-
-      {/* 2. Fondo de Puntilleado de Alta Precisión (Dot Grid Background) overlay de los círculos */}
-      <Box
-        position="absolute"
-        top={0}
-        left={0}
-        right={0}
-        bottom={0}
-        backgroundImage="radial-gradient(rgba(100, 116, 139, 0.24) 1.5px, transparent 1.5px)"
-        backgroundSize="20px 20px"
-        pointerEvents="none"
-        zIndex={2}
-      />
-
+    <ScreenLayout>
       {/* Contenedor principal de Login con estética premium frosted-glass claro */}
       <Box
         position="relative"
@@ -201,66 +161,15 @@ export const Login = ({ onLoginSuccess }) => {
               </Box>
 
               {/* Campo Contraseña */}
-              <Box>
-                <Text
-                  fontSize="xs"
-                  fontWeight="semibold"
-                  color="gray.700"
-                  mb={2}
-                  letterSpacing="wider"
-                  textTransform="uppercase"
-                >
-                  Contraseña
-                </Text>
-                <Flex position="relative" align="center">
-                  <Box position="absolute" left={4} color="gray.400" zIndex={2}>
-                    <Lock size={18} />
-                  </Box>
-                  <Input
-                    id="password-input"
-                    type={showPassword ? "text" : "password"}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    pl={12}
-                    pr={12}
-                    h="50px"
-                    bg="rgba(255, 255, 255, 0.8)"
-                    border="1px solid rgba(15, 23, 42, 0.12)"
-                    borderRadius="xl"
-                    color="gray.800"
-                    fontSize="sm"
-                    _placeholder={{ color: "gray.400" }}
-                    _hover={{ borderColor: "rgba(15, 23, 42, 0.2)" }}
-                    _focus={{
-                      borderColor: "blue.500",
-                      bg: "white",
-                      outline: "none",
-                      boxShadow: "0 0 0 1px rgba(37, 99, 235, 0.25)",
-                    }}
-                    transition="all 0.2s"
-                    disabled={isLoading}
-                    autoComplete="current-password"
-                  />
-                  <Button
-                    type="button"
-                    position="absolute"
-                    right={2}
-                    variant="ghost"
-                    h="36px"
-                    w="36px"
-                    minW="36px"
-                    p={0}
-                    color="gray.400"
-                    _hover={{ color: "gray.800", bg: "rgba(0, 0, 0, 0.03)" }}
-                    onClick={() => setShowPassword(!showPassword)}
-                    tabIndex="-1"
-                    disabled={isLoading}
-                  >
-                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </Button>
-                </Flex>
-              </Box>
+              <PasswordInput
+                id="password-input"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                label="Contraseña"
+                isLoading={isLoading}
+                autoComplete="current-password"
+              />
 
               {/* Mensaje de Error */}
               {error && (
@@ -316,34 +225,7 @@ export const Login = ({ onLoginSuccess }) => {
           </form>
         </VStack>
       </Box>
-
-      {/* Footer del Login */}
-      <Box
-        position="absolute"
-        bottom={4}
-        left="50%"
-        transform="translateX(-50%)"
-        zIndex={10}
-        px={6}
-        py={2}
-        borderRadius="full"
-        bg="rgba(255, 255, 255, 0.65)"
-        backdropFilter="blur(100px)"
-        boxShadow="0 10px 30px rgba(255, 255, 255, 1), 0 0 20px rgba(255, 255, 255, 1)"
-        border="1px solid rgba(255, 255, 255, 0.7)"
-        whiteSpace="nowrap"
-      >
-        <Text
-          fontSize="10px"
-          color="gray.500"
-          letterSpacing="widest"
-          textTransform="uppercase"
-          fontWeight="medium"
-        >
-          UCAMI 2026 • Area de Tecnología
-        </Text>
-      </Box>
-    </Flex>
+    </ScreenLayout>
   );
 };
 

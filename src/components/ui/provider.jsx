@@ -1,12 +1,23 @@
 'use client'
 
-import { ChakraProvider, defaultSystem } from '@chakra-ui/react'
-import { ColorModeProvider } from './color-mode'
+import { ChakraProvider, createSystem, defaultConfig } from '@chakra-ui/react'
+
+const system = createSystem(defaultConfig, {
+  theme: {
+    recipes: {
+      button: {
+        base: {
+          borderRadius: "lg",
+        }
+      }
+    }
+  }
+})
 
 export function Provider(props) {
   return (
-    <ChakraProvider value={defaultSystem}>
-      <ColorModeProvider {...props} />
+    <ChakraProvider value={system}>
+      {props.children}
     </ChakraProvider>
   )
 }
