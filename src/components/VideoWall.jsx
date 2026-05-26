@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useMemo } from "react";
 import {
   Center,
   Text,
@@ -46,32 +46,12 @@ export const VideoWall = () => {
     8: "A", // Iguales por defecto
   });
 
-  const emptyStateBg = "#f8fafc";
-  const emptyStateGlassBg = "rgba(255, 255, 255, 0.65)";
-  const emptyStateGlassShadow =
-    "0 10px 30px rgba(255, 255, 255, 1), 0 0 20px rgba(255, 255, 255, 1)";
-  const emptyStateGlassBorder = "1px solid rgba(255, 255, 255, 0.7)";
-  const emptyStateTextColor = "gray.500";
 
-  const floatBtnBorderColor = "gray.200";
-  const floatBtnBg = "white";
-  const floatBtnColor = "gray.700";
-  const floatBtnHoverBg = "gray.50";
-
-  const popoverBg = "white";
-  const popoverBorder = "gray.200";
-  const popoverTitleColor = "gray.700";
-
-  const optionBorderColor = "gray.200";
-  const optionSelectedBg = "blue.50";
-  const optionBg = "white";
-  const optionHoverBg = "gray.50";
-
-  // Obtener las dimensiones del grid dinámico
-  const activeCameras = list.filter((cam) => cam.streaming && cam.webrtc_url);
-  const stableActiveCameras = [...activeCameras].sort((a, b) =>
-    a.dev.localeCompare(b.dev),
-  );
+  // Obtener las dimensiones del grid dinámico de forma memoizada
+  const stableActiveCameras = useMemo(() => {
+    const active = list.filter((cam) => cam.streaming && cam.webrtc_url);
+    return [...active].sort((a, b) => a.dev.localeCompare(b.dev));
+  }, [list]);
   const count = stableActiveCameras.length;
   const currentLayout = layoutSelections[count] || "A";
 
@@ -105,7 +85,7 @@ export const VideoWall = () => {
       <Center
         h="100%"
         w="100%"
-        bg={emptyStateBg}
+        bg="nvr.bg.app"
         position="relative"
         overflow="hidden"
       >
@@ -125,21 +105,22 @@ export const VideoWall = () => {
           px={6}
           py={2.5}
           borderRadius="full"
-          bg={emptyStateGlassBg}
+          bg="nvr.glass.emptyBg"
           backdropFilter="blur(100px)"
-          boxShadow={emptyStateGlassShadow}
-          border={emptyStateGlassBorder}
+          boxShadow="nvr.glass"
+          border="1px solid"
+          borderColor="nvr.glass.emptyBorder"
           whiteSpace="nowrap"
           zIndex={10}
           animation="modal-content-scale-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards"
         >
           <HStack gap={3} align="center">
-            <Box color="blue.600" display="flex" alignItems="center">
+            <Box color="nvr.brand.primaryText" display="flex" alignItems="center">
               <MonitorPlay size={16} strokeWidth={2.5} />
             </Box>
             <Text
               fontSize="10px"
-              color={emptyStateTextColor}
+              color="nvr.text.secondary"
               letterSpacing="widest"
               textTransform="uppercase"
               fontWeight="semibold"
@@ -388,14 +369,14 @@ export const VideoWall = () => {
                     aria-label="Seleccionar diseño de cuadrícula"
                     boxShadow="lg"
                     borderWidth="1px"
-                    borderColor={floatBtnBorderColor}
-                    bg={floatBtnBg}
-                    color={floatBtnColor}
+                    borderColor="nvr.border.default"
+                    bg="nvr.bg.card"
+                    color="nvr.text.secondary"
                     transition="all 0.25s cubic-bezier(0.16, 1, 0.3, 1)"
                     _hover={{
-                      bg: floatBtnHoverBg,
-                      borderColor: "blue.500",
-                      color: "blue.500",
+                      bg: "nvr.bg.muted",
+                      borderColor: "nvr.brand.primary",
+                      color: "nvr.brand.primaryText",
                       transform: "scale(1.05)",
                     }}
                     _active={{
@@ -410,20 +391,25 @@ export const VideoWall = () => {
             <Portal>
               <Popover.Positioner zIndex={1600}>
                 <Popover.Content
-                  bg={popoverBg}
-                  borderColor={popoverBorder}
+                  bg="nvr.bg.modal"
+                  borderColor="nvr.border.default"
                   shadow="2xl"
                   p={2}
                   borderRadius="lg"
                   zIndex="popover"
                   w="84px"
+                  onWheel={(e) => e.stopPropagation()}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onMouseMove={(e) => e.stopPropagation()}
+                  onMouseUp={(e) => e.stopPropagation()}
+                  onDoubleClick={(e) => e.stopPropagation()}
                 >
                   <Popover.Arrow />
                   <Popover.Body p={1}>
                     <Text
                       fontSize="xs"
                       fontWeight="bold"
-                      color={popoverTitleColor}
+                      color="nvr.text.secondary"
                       mb={2}
                       textAlign="center"
                     >
@@ -440,18 +426,18 @@ export const VideoWall = () => {
                               setLayoutSelections((prev) => ({
                                 ...prev,
                                 [count]: opt.key,
-                              }));
+                               }));
                             }}
                             p="4px"
                             borderRadius="lg"
                             border="1px solid"
                             borderColor={
-                              isSelected ? "blue.500" : optionBorderColor
+                              isSelected ? "nvr.brand.primary" : "nvr.border.default"
                             }
-                            bg={isSelected ? optionSelectedBg : optionBg}
+                            bg={isSelected ? "nvr.brand.activeBg" : "nvr.bg.card"}
                             _hover={{
-                              borderColor: isSelected ? "blue.600" : "blue.300",
-                              bg: isSelected ? optionSelectedBg : optionHoverBg,
+                              borderColor: isSelected ? "nvr.brand.primaryText" : "blue.300",
+                              bg: isSelected ? "nvr.brand.activeBg" : "nvr.bg.muted",
                               transform: "translateY(-1px)",
                             }}
                             transition="all 0.15s ease-in-out"
@@ -487,14 +473,14 @@ export const VideoWall = () => {
                 aria-label="Restablecer cuadrícula"
                 boxShadow="lg"
                 borderWidth="1px"
-                borderColor={floatBtnBorderColor}
-                bg={floatBtnBg}
-                color={floatBtnColor}
+                borderColor="nvr.border.default"
+                bg="nvr.bg.card"
+                color="nvr.text.secondary"
                 transition="all 0.25s cubic-bezier(0.16, 1, 0.3, 1)"
                 _hover={{
-                  bg: floatBtnHoverBg,
-                  borderColor: "blue.500",
-                  color: "blue.500",
+                  bg: "nvr.bg.muted",
+                  borderColor: "nvr.brand.primary",
+                  color: "nvr.brand.primaryText",
                   transform: "scale(1.05) rotate(-45deg)",
                 }}
                 _active={{

@@ -160,7 +160,7 @@ export const UvcControlPanel = ({
               size={size}
               variant={variant}
               colorPalette="gray"
-              borderColor={variant === "outline" ? "gray.200" : undefined}
+              borderColor={variant === "outline" ? "nvr.border.default" : undefined}
               aria-label="Ajustes de video"
               loading={isLoadingControls}
               spinner={<BeatLoader size={size === "xs" ? 4 : 6} color="#4b5563" />}
@@ -168,7 +168,7 @@ export const UvcControlPanel = ({
               _hover={
                 variant === "ghost"
                   ? { bg: "blackAlpha.100" }
-                  : { bg: "gray.50", borderColor: "gray.300" }
+                  : { bg: "nvr.bg.muted", borderColor: "nvr.border.interactive" }
               }
               {...buttonProps}
             >
@@ -181,13 +181,18 @@ export const UvcControlPanel = ({
         <Popover.Positioner zIndex={1600}>
           <Popover.Content
             key={isLoadingControls ? "loading" : "loaded"}
-            bg="white"
-            borderColor="gray.200"
+            bg="nvr.bg.modal"
+            borderColor="nvr.border.default"
             shadow="lg"
             p={3}
             borderRadius="lg"
             zIndex="popover"
             width="340px"
+            onWheel={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+            onMouseMove={(e) => e.stopPropagation()}
+            onMouseUp={(e) => e.stopPropagation()}
+            onDoubleClick={(e) => e.stopPropagation()}
           >
             <Popover.Arrow />
             <Popover.Body p={0}>
@@ -235,11 +240,11 @@ export const UvcControlPanel = ({
                   {/* Sección Especial: Modo Blanco y Negro */}
                   {saturationCtrl && (
                     <Box
-                      bg="gray.50"
+                      bg="nvr.bg.muted"
                       p={2}
                       borderRadius="lg"
                       borderWidth="1px"
-                      borderColor="gray.150"
+                      borderColor="nvr.border.subtle"
                     >
                       <Flex justify="space-between" align="center">
                         <Text fontSize="xs" fontWeight="bold" color="gray.700">
@@ -271,11 +276,11 @@ export const UvcControlPanel = ({
                   {
                     (focusAutoCtrl || focusAbsCtrl) && (
                       <Box
-                        bg="gray.50"
+                        bg="nvr.bg.muted"
                         p={2.5}
                         borderRadius="lg"
                         borderWidth="1px"
-                        borderColor="gray.150"
+                        borderColor="nvr.border.subtle"
                       >
                         <Flex justify="space-between" align="center" mb={2}>
                           <Text
@@ -417,9 +422,9 @@ export const UvcControlPanel = ({
                                 w="60px"
                               >
                                 <NumberInput.Input
-                                  bg="white"
+                                  bg="nvr.bg.card"
                                   borderRadius="md"
-                                  borderColor="gray.300"
+                                  borderColor="nvr.border.interactive"
                                   textAlign="center"
                                   onBlur={async () => {
                                     let val = Number(focusAbsCtrl.value);
@@ -487,7 +492,7 @@ export const UvcControlPanel = ({
                     ) /* Fin Ajuste de Foco */
                   }
 
-                  <Separator borderColor="gray.200" />
+                  <Separator borderColor="nvr.border.default" />
 
                   {/* Lista de Controles Numéricos Genéricos */}
                   <VStack align="stretch" gap={3}>
@@ -563,10 +568,10 @@ export const UvcControlPanel = ({
                                 w="60px"
                               >
                                 <NumberInput.Input
-                                  bg="white"
+                                  bg="nvr.bg.card"
                                   borderRadius="md"
-                                  color={isDisabled ? "gray.400" : "gray.800"}
-                                  borderColor="gray.300"
+                                  color={isDisabled ? "gray.400" : "nvr.text.primary"}
+                                  borderColor="nvr.border.interactive"
                                   textAlign="center"
                                   onBlur={() => {
                                     let val = Number(ctrl.value);

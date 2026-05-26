@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useMemo } from "react";
+import { useEffect, useRef, useState, useMemo, memo } from "react";
 import { Box, HStack, Popover, Text, VStack, Portal, Center } from "@chakra-ui/react";
 import {
   Camera,
@@ -414,6 +414,11 @@ export const WebRTCPlayer = ({ url, camera }) => {
                   borderRadius="xl"
                   zIndex="popover"
                   width="280px"
+                  onWheel={(e) => e.stopPropagation()}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onMouseMove={(e) => e.stopPropagation()}
+                  onMouseUp={(e) => e.stopPropagation()}
+                  onDoubleClick={(e) => e.stopPropagation()}
                 >
                   <Popover.Arrow />
                   <Popover.Body p={0}>
@@ -507,4 +512,14 @@ export const WebRTCPlayer = ({ url, camera }) => {
   );
 };
 
-export default WebRTCPlayer;
+export default memo(WebRTCPlayer, (prevProps, nextProps) => {
+  return (
+    prevProps.url === nextProps.url &&
+    prevProps.camera?.dev === nextProps.camera?.dev &&
+    prevProps.camera?.name === nextProps.camera?.name &&
+    prevProps.camera?.streaming === nextProps.camera?.streaming &&
+    prevProps.camera?.active_settings?.resolution === nextProps.camera?.active_settings?.resolution &&
+    prevProps.camera?.active_settings?.fps === nextProps.camera?.active_settings?.fps &&
+    prevProps.camera?.active_settings?.bitrate === nextProps.camera?.active_settings?.bitrate
+  );
+});

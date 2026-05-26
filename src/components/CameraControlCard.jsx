@@ -146,17 +146,17 @@ const CameraControlCard = ({ camera }) => {
   return (
     <Box
       borderWidth="1px"
-      borderColor="gray.200"
+      borderColor="nvr.border.default"
       borderRadius="xl"
       p={2}
-      bg="white"
+      bg="nvr.bg.card"
       transition="all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
       _hover={{
-        borderColor: "gray.300",
+        borderColor: "nvr.border.interactive",
       }}
     >
       <HStack justify="space-between" mb={2}>
-        <Text fontWeight="bold" fontSize="sm" color="gray.800" truncate>
+        <Text fontWeight="bold" fontSize="sm" color="nvr.text.primary" truncate>
           {formatDeviceName(camera.dev)}
         </Text>
         <Badge
@@ -199,10 +199,10 @@ const CameraControlCard = ({ camera }) => {
                     size="sm"
                     variant="outline"
                     colorPalette="gray"
-                    borderColor="gray.200"
+                    borderColor="nvr.border.default"
                     aria-label="Configuración de transmisión"
                     transition="all 0.2s"
-                    _hover={{ bg: "gray.50", borderColor: "gray.300" }}
+                    _hover={{ bg: "nvr.bg.muted", borderColor: "nvr.border.interactive" }}
                     disabled={isToggling}
                   >
                     <Settings size={16} />
@@ -213,8 +213,8 @@ const CameraControlCard = ({ camera }) => {
             <Portal>
               <Popover.Positioner zIndex={1600}>
                 <Popover.Content
-                  bg="white"
-                  borderColor="gray.200"
+                  bg="nvr.bg.modal"
+                  borderColor="nvr.border.default"
                   shadow="lg"
                   p={3}
                   borderRadius="lg"
@@ -225,7 +225,7 @@ const CameraControlCard = ({ camera }) => {
                     <Text
                       fontSize="xs"
                       fontWeight="bold"
-                      color="gray.700"
+                      color="nvr.text.secondary"
                       mb={2}
                     >
                       Ajustes de Transmisión

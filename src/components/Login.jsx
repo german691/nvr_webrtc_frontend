@@ -66,13 +66,13 @@ export const Login = ({ onLoginSuccess }) => {
         zIndex={10}
         w="100%"
         maxW="440px"
-        bg="rgba(255, 255, 255, 0.65)"
+        bg="nvr.glass.emptyBg"
         backdropFilter="blur(30px) saturate(190%)"
-        border="1px solid rgba(255, 255, 255, 0.7)"
+        border="1px solid"
+        borderColor="nvr.glass.emptyBorder"
         borderRadius="3xl"
         p={{ base: 6, md: 10 }}
         boxShadow="0 20px 40px -15px rgba(15, 23, 42, 0.08), 0 0 0 1px rgba(15, 23, 42, 0.04)"
-        animation="modal-content-scale-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards"
         id="login-panel"
       >
         <VStack spaceY={6} align="stretch">
@@ -90,7 +90,7 @@ export const Login = ({ onLoginSuccess }) => {
                 maxH="100px"
                 objectFit="contain"
                 fallback={
-                  <Heading size="xl" color="gray.800" letterSpacing="wider">
+                  <Heading size="xl" color="nvr.text.primary" letterSpacing="wider">
                     UCAMI
                   </Heading>
                 }
@@ -99,14 +99,14 @@ export const Login = ({ onLoginSuccess }) => {
             <VStack spaceY={1} align="center">
               <Heading
                 size="md"
-                color="gray.800"
+                color="nvr.text.primary"
                 fontWeight="semibold"
                 letterSpacing="tight"
                 id="login-title"
               >
                 Control de Cámaras de Odontología
               </Heading>
-              <Text fontSize="xs" color="gray.500" textAlign="center">
+              <Text fontSize="xs" color="nvr.text.secondary" textAlign="center">
                 Odontología • Acceso Tecnológico Restringido
               </Text>
             </VStack>
@@ -120,7 +120,7 @@ export const Login = ({ onLoginSuccess }) => {
                 <Text
                   fontSize="xs"
                   fontWeight="semibold"
-                  color="gray.700"
+                  color="nvr.text.primary"
                   mb={2}
                   letterSpacing="wider"
                   textTransform="uppercase"
@@ -128,7 +128,7 @@ export const Login = ({ onLoginSuccess }) => {
                   Usuario
                 </Text>
                 <Flex position="relative" align="center">
-                  <Box position="absolute" left={4} color="gray.400" zIndex={2}>
+                  <Box position="absolute" left={4} color="nvr.text.secondary" zIndex={2}>
                     <User size={18} />
                   </Box>
                   <Input
@@ -140,16 +140,17 @@ export const Login = ({ onLoginSuccess }) => {
                     pl={12}
                     pr={4}
                     h="50px"
-                    bg="rgba(255, 255, 255, 0.8)"
-                    border="1px solid rgba(15, 23, 42, 0.12)"
+                    bg="nvr.bg.card"
+                    border="1px solid"
+                    borderColor="nvr.border.interactive"
                     borderRadius="xl"
-                    color="gray.800"
+                    color="nvr.text.primary"
                     fontSize="sm"
                     _placeholder={{ color: "gray.400" }}
                     _hover={{ borderColor: "rgba(15, 23, 42, 0.2)" }}
                     _focus={{
-                      borderColor: "blue.500",
-                      bg: "white",
+                      borderColor: "nvr.brand.primary",
+                      bg: "nvr.bg.card",
                       outline: "none",
                       boxShadow: "0 0 0 1px rgba(37, 99, 235, 0.25)",
                     }}
@@ -176,18 +177,19 @@ export const Login = ({ onLoginSuccess }) => {
                 <Flex
                   align="start"
                   p={4}
-                  bg="red.50"
-                  border="1px solid rgba(239, 68, 68, 0.15)"
+                  bg="nvr.brand.dangerBg"
+                  border="1px solid"
+                  borderColor="nvr.brand.dangerBorder"
                   borderRadius="xl"
                   gap={3}
                   animation="modal-content-scale-in 0.3s ease-out forwards"
                 >
-                  <Box color="red.500" mt={0.5}>
+                  <Box color="nvr.brand.dangerIcon" mt={0.5}>
                     <AlertCircle size={16} />
                   </Box>
                   <Text
                     fontSize="xs"
-                    color="red.700"
+                    color="nvr.brand.danger"
                     fontWeight="medium"
                     id="login-error-msg"
                   >
@@ -203,7 +205,7 @@ export const Login = ({ onLoginSuccess }) => {
                 loading={isLoading}
                 loadingText="Autenticando..."
                 h="50px"
-                bg="blue.600"
+                bg="nvr.brand.primaryText"
                 color="white"
                 borderRadius="xl"
                 fontSize="sm"

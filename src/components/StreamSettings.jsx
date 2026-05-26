@@ -18,13 +18,6 @@ export const StreamSettings = ({
   setBitrate,
   disabled,
 }) => {
-  const textColor = "gray.600";
-  const triggerBg = "white";
-  const triggerBorderColor = "gray.300";
-  const contentBg = "white";
-  const contentBorderColor = "gray.200";
-  const itemHoverBg = "gray.100";
-
   // Los arreglos ya vienen formateados del componente superior, por lo que el map es lineal.
   const resCollection = useMemo(
     () =>
@@ -54,7 +47,7 @@ export const StreamSettings = ({
     <>
       <Flex gap={2}>
         <Box flex="2">
-          <Text fontSize="xs" color={textColor} mb={1}>
+          <Text fontSize="xs" color="nvr.text.secondary" mb={1}>
             Resolución
           </Text>
           <Select.Root
@@ -67,8 +60,8 @@ export const StreamSettings = ({
             <Select.HiddenSelect />
             <Select.Control>
               <Select.Trigger
-                bg={triggerBg}
-                borderColor={triggerBorderColor}
+                bg="nvr.bg.card"
+                borderColor="nvr.border.interactive"
                 borderRadius="lg"
                 _disabled={{ opacity: 0.6, cursor: "not-allowed" }}
               >
@@ -80,8 +73,8 @@ export const StreamSettings = ({
             </Select.Control>
             <Select.Positioner>
               <Select.Content
-                bg={contentBg}
-                borderColor={contentBorderColor}
+                bg="nvr.bg.modal"
+                borderColor="nvr.border.default"
                 shadow="md"
                 borderRadius="lg"
                 zIndex="popover"
@@ -90,7 +83,7 @@ export const StreamSettings = ({
                   <Select.Item
                     item={item}
                     key={item.value}
-                    _hover={{ bg: itemHoverBg }}
+                    _hover={{ bg: "nvr.bg.muted" }}
                   >
                     {item.label}
                   </Select.Item>
@@ -101,7 +94,7 @@ export const StreamSettings = ({
         </Box>
 
         <Box flex="1">
-          <Text fontSize="xs" color={textColor} mb={1}>
+          <Text fontSize="xs" color="nvr.text.secondary" mb={1}>
             FPS
           </Text>
           <Select.Root
@@ -114,8 +107,8 @@ export const StreamSettings = ({
             <Select.HiddenSelect />
             <Select.Control>
               <Select.Trigger
-                bg={triggerBg}
-                borderColor={triggerBorderColor}
+                bg="nvr.bg.card"
+                borderColor="nvr.border.interactive"
                 borderRadius="lg"
                 _disabled={{ opacity: 0.6, cursor: "not-allowed" }}
               >
@@ -127,17 +120,17 @@ export const StreamSettings = ({
             </Select.Control>
             <Select.Positioner>
               <Select.Content
-                bg={contentBg}
-                borderColor={contentBorderColor}
+                bg="nvr.bg.modal"
+                borderColor="nvr.border.default"
                 shadow="md"
                 borderRadius="lg"
                 zIndex="popover"
               >
-                {fpsCollection.items.map((item) => (
+                {fpsCollection.items.items?.map ? null : fpsCollection.items.map((item) => (
                   <Select.Item
                     item={item}
                     key={item.value}
-                    _hover={{ bg: itemHoverBg }}
+                    _hover={{ bg: "nvr.bg.muted" }}
                   >
                     {item.label}
                   </Select.Item>
@@ -149,7 +142,7 @@ export const StreamSettings = ({
       </Flex>
 
       <Box>
-        <Text fontSize="xs" color={textColor} mb={1}>
+        <Text fontSize="xs" color="nvr.text.secondary" mb={1}>
           Compresión de Red
         </Text>
         <Select.Root
@@ -162,8 +155,8 @@ export const StreamSettings = ({
           <Select.HiddenSelect />
           <Select.Control>
             <Select.Trigger
-              bg={triggerBg}
-              borderColor={triggerBorderColor}
+              bg="nvr.bg.card"
+              borderColor="nvr.border.interactive"
               borderRadius="lg"
               _disabled={{ opacity: 0.6, cursor: "not-allowed" }}
             >
@@ -175,8 +168,8 @@ export const StreamSettings = ({
           </Select.Control>
           <Select.Positioner>
             <Select.Content
-              bg={contentBg}
-              borderColor={contentBorderColor}
+              bg="nvr.bg.modal"
+              borderColor="nvr.border.default"
               shadow="md"
               borderRadius="lg"
               zIndex="popover"
@@ -185,7 +178,7 @@ export const StreamSettings = ({
                 <Select.Item
                   item={item}
                   key={item.value}
-                  _hover={{ bg: itemHoverBg }}
+                  _hover={{ bg: "nvr.bg.muted" }}
                 >
                   {item.label}
                 </Select.Item>

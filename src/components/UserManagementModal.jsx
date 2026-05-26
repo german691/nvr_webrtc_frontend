@@ -42,41 +42,6 @@ const roleCollection = createListCollection({
 });
 
 export const UserManagementModal = ({ isOpen, onClose }) => {
-  const modalBg = "white";
-  const modalBorder = "gray.200";
-  const headerBorder = "gray.100";
-  const headerBg = "gray.50";
-  const iconCenterBgForm = "blue.50";
-  const iconCenterBgList = "gray.100";
-  const iconCenterColorForm = "blue.600";
-  const iconCenterColorList = "gray.800";
-
-  const contentBg = "gray.50/50";
-  const labelColor = "gray.700";
-  const inputBg = "white";
-  const inputBorderColor = "gray.300";
-  const selectPopoverBg = "white";
-  const selectPopoverBorderColor = "gray.200";
-  const selectItemHoverBg = "gray.100";
-
-  const listCardBg = "white";
-  const listCardBorder = "gray.200";
-  const listCardHoverBorder = "gray.300";
-  const listCardIconBg = "gray.100";
-  const listCardIconColor = "gray.800";
-  const listCardTextColor = "gray.800";
-  const safetyNoteColor = "gray.500";
-
-  const deleteModalBg = "white";
-  const deleteModalBorder = "gray.200";
-  const deleteIconBg = "red.50";
-  const deleteIconColor = "red.500";
-  const deleteTitleColor = "gray.800";
-  const deleteTextColor = "gray.500";
-
-  const outlineBtnBorder = "gray.200";
-  const outlineBtnHoverBg = "gray.50";
-
   const [users, setUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
@@ -341,10 +306,10 @@ export const UserManagementModal = ({ isOpen, onClose }) => {
         <Box
           w="full"
           maxW="2xl"
-          bg={modalBg}
+          bg="nvr.bg.modal"
           borderRadius="xl"
           borderWidth="1px"
-          borderColor={modalBorder}
+          borderColor="nvr.border.default"
           shadow="2xl"
           pointerEvents="auto"
           display="flex"
@@ -358,13 +323,13 @@ export const UserManagementModal = ({ isOpen, onClose }) => {
           <Flex
             p={3}
             borderBottomWidth="1px"
-            borderColor={headerBorder}
+            borderColor="nvr.border.subtle"
             justify="space-between"
             align="center"
-            bg={headerBg}
+            bg="nvr.bg.headerBg"
           >
             <HStack gap={3}>
-              <Center p={2} borderRadius="lg" bg={isFormOpen ? iconCenterBgForm : iconCenterBgList} color={isFormOpen ? iconCenterColorForm : iconCenterColorList}>
+              <Center p={2} borderRadius="lg" bg={isFormOpen ? "nvr.brand.activeBg" : "nvr.bg.muted"} color={isFormOpen ? "nvr.brand.primaryText" : "nvr.text.primary"}>
                 {isFormOpen ? (
                   resettingPasswordUser ? <Key size={18} /> : <UserPlus size={18} />
                 ) : (
@@ -372,13 +337,13 @@ export const UserManagementModal = ({ isOpen, onClose }) => {
                 )}
               </Center>
               <VStack align="stretch" gap={0}>
-                <Text fontWeight="bold" fontSize="md" color="gray.800">
+                <Text fontWeight="bold" fontSize="md" color="nvr.text.primary">
                   {isCreating && "Registrar Nuevo Usuario"}
                   {editingUser && "Editar Perfil de Usuario"}
                   {resettingPasswordUser && "Restablecer Contraseña"}
                   {!isFormOpen && "Gestión Administrativa de Usuarios"}
                 </Text>
-                <Text fontSize="2xs" color="gray.500">
+                <Text fontSize="2xs" color="nvr.text.secondary">
                   {isCreating && "Agrega una nueva cuenta de acceso al sistema"}
                   {editingUser && `Modifica los privilegios del usuario: ${editingUser.username}`}
                   {resettingPasswordUser && `Genera una clave temporal para: ${resettingPasswordUser.username}`}
@@ -412,22 +377,21 @@ export const UserManagementModal = ({ isOpen, onClose }) => {
               </IconButton>
             )}
           </Flex>
-
           {successMsg && (
             <Flex
-              bg="emerald.50"
+              bg="nvr.brand.successBg"
               borderBottomWidth="1px"
-              borderColor="emerald.200"
+              borderColor="nvr.brand.successBorder"
               p={3.5}
               px={4}
               gap={3}
               align="center"
               animation="slide-down 0.2s ease-out"
             >
-              <Box color="emerald.500">
+              <Box color="nvr.brand.success">
                 <CheckCircle size={16} />
               </Box>
-              <Text fontSize="xs" fontWeight="semibold" color="emerald.700">
+              <Text fontSize="xs" fontWeight="semibold" color="nvr.brand.success">
                 {successMsg}
               </Text>
             </Flex>
@@ -435,26 +399,26 @@ export const UserManagementModal = ({ isOpen, onClose }) => {
 
           {error && (
             <Flex
-              bg="red.50"
+              bg="nvr.brand.dangerBg"
               borderBottomWidth="1px"
-              borderColor="red.200"
+              borderColor="nvr.brand.dangerBorder"
               p={3.5}
               px={4}
               gap={3}
               align="center"
               animation="slide-down 0.2s ease-out"
             >
-              <Box color="red.500">
+              <Box color="nvr.brand.dangerIcon">
                 <AlertCircle size={16} />
               </Box>
-              <Text fontSize="xs" fontWeight="semibold" color="red.700">
+              <Text fontSize="xs" fontWeight="semibold" color="nvr.brand.danger">
                 {error}
               </Text>
             </Flex>
           )}
 
           {/* CONTENIDO DINÁMICO: FORMULARIO O LISTADO */}
-          <Box flex="1" overflowY="auto" p={4} bg={contentBg}>
+          <Box flex="1" overflowY="auto" p={4} bg="nvr.bg.muted">
             {isFormOpen ? (
               /* FORMULARIO DE ACCIONES */
               <form
@@ -470,7 +434,7 @@ export const UserManagementModal = ({ isOpen, onClose }) => {
                   {!resettingPasswordUser && (
                     <HStack gap={3} align="start">
                       <Box flex="1">
-                        <Text fontSize="2xs" fontWeight="bold" color={labelColor} mb={1.5} textTransform="uppercase">
+                        <Text fontSize="2xs" fontWeight="bold" color="nvr.text.secondary" mb={1.5} textTransform="uppercase">
                           Nombre de Usuario
                         </Text>
                         <Input
@@ -479,8 +443,8 @@ export const UserManagementModal = ({ isOpen, onClose }) => {
                           onChange={(e) => setUsername(e.target.value)}
                           h="38px"
                           borderRadius="lg"
-                          bg={inputBg}
-                          borderColor={inputBorderColor}
+                          bg="nvr.bg.card"
+                          borderColor="nvr.border.interactive"
                           fontSize="sm"
                           disabled={actionLoading}
                           required
@@ -488,7 +452,7 @@ export const UserManagementModal = ({ isOpen, onClose }) => {
                       </Box>
 
                       <Box w="180px">
-                        <Text fontSize="2xs" fontWeight="bold" color={labelColor} mb={1.5} textTransform="uppercase">
+                        <Text fontSize="2xs" fontWeight="bold" color="nvr.text.secondary" mb={1.5} textTransform="uppercase">
                           Rol del Usuario
                         </Text>
                         <Select.Root
@@ -500,7 +464,7 @@ export const UserManagementModal = ({ isOpen, onClose }) => {
                         >
                           <Select.HiddenSelect name="role" />
                           <Select.Control>
-                            <Select.Trigger bg={inputBg} borderColor={inputBorderColor} borderRadius="lg" h="38px">
+                            <Select.Trigger bg="nvr.bg.card" borderColor="nvr.border.interactive" borderRadius="lg" h="38px">
                               <Select.ValueText placeholder="Seleccionar rol" />
                             </Select.Trigger>
                             <Select.IndicatorGroup>
@@ -509,8 +473,8 @@ export const UserManagementModal = ({ isOpen, onClose }) => {
                           </Select.Control>
                           <Select.Positioner>
                             <Select.Content
-                              bg={selectPopoverBg}
-                              borderColor={selectPopoverBorderColor}
+                              bg="nvr.bg.modal"
+                              borderColor="nvr.border.default"
                               shadow="md"
                               borderRadius="lg"
                               zIndex={2200}
@@ -519,7 +483,7 @@ export const UserManagementModal = ({ isOpen, onClose }) => {
                                 <Select.Item
                                   item={item}
                                   key={item.value}
-                                  _hover={{ bg: selectItemHoverBg }}
+                                  _hover={{ bg: "nvr.bg.muted" }}
                                 >
                                   {item.label}
                                 </Select.Item>
@@ -533,7 +497,7 @@ export const UserManagementModal = ({ isOpen, onClose }) => {
 
                   {(isCreating || resettingPasswordUser) && (
                     <Box>
-                      <Text fontSize="2xs" fontWeight="bold" color={labelColor} mb={1.5} textTransform="uppercase">
+                      <Text fontSize="2xs" fontWeight="bold" color="nvr.text.secondary" mb={1.5} textTransform="uppercase">
                         {resettingPasswordUser ? "Nueva Contraseña" : "Contraseña Inicial"}
                       </Text>
                       <Flex position="relative" align="center">
@@ -544,8 +508,8 @@ export const UserManagementModal = ({ isOpen, onClose }) => {
                           onChange={(e) => setPassword(e.target.value)}
                           h="38px"
                           borderRadius="lg"
-                          bg={inputBg}
-                          borderColor={inputBorderColor}
+                          bg="nvr.bg.card"
+                          borderColor="nvr.border.interactive"
                           fontSize="sm"
                           disabled={actionLoading}
                           pr="40px"
@@ -568,7 +532,7 @@ export const UserManagementModal = ({ isOpen, onClose }) => {
                         </IconButton>
                       </Flex>
                       {isCreating && (
-                        <Text fontSize="2xs" color={safetyNoteColor} mt={1.5}>
+                        <Text fontSize="2xs" color="gray.500" mt={1.5}>
                           * Nota: Por seguridad, se obligará al usuario a redefinir esta clave en su primer acceso.
                         </Text>
                       )}
@@ -579,8 +543,8 @@ export const UserManagementModal = ({ isOpen, onClose }) => {
                     <Button
                       variant="outline"
                       colorPalette="gray"
-                      borderColor={outlineBtnBorder}
-                      _hover={{ bg: outlineBtnHoverBg }}
+                      borderColor="nvr.border.default"
+                      _hover={{ bg: "nvr.bg.muted" }}
                       onClick={resetForm}
                       disabled={actionLoading}
                       h="38px"
@@ -595,7 +559,7 @@ export const UserManagementModal = ({ isOpen, onClose }) => {
                       loading={actionLoading}
                       loadingText="Guardando..."
                       h="38px"
-                      bg="blue.600"
+                      bg="nvr.brand.primaryText"
                       color="white"
                       fontSize="xs"
                       fontWeight="bold"
@@ -637,26 +601,26 @@ export const UserManagementModal = ({ isOpen, onClose }) => {
                     <Box
                       key={user.id}
                       p={2.5}
-                      bg={listCardBg}
+                      bg="nvr.bg.card"
                       borderWidth="1px"
-                      borderColor={listCardBorder}
+                      borderColor="nvr.border.default"
                       borderRadius="lg"
                       shadow="xs"
                       transition="all 0.2s"
-                      _hover={{ shadow: "sm", borderColor: listCardHoverBorder }}
+                      _hover={{ shadow: "sm", borderColor: "nvr.border.interactive" }}
                     >
                       <Flex justify="space-between" align="center" wrap="wrap" gap={3}>
                         <HStack gap={3}>
                           <Center
                             p={2.5}
                             borderRadius="full"
-                            bg={listCardIconBg}
-                            color={listCardIconColor}
+                            bg="nvr.bg.muted"
+                            color="nvr.text.primary"
                           >
                             {user.role === "admin" ? <Shield size={16} /> : <User size={16} />}
                           </Center>
                           <VStack align="stretch" gap={0.5}>
-                            <Text fontWeight="bold" fontSize="sm" color={listCardTextColor}>
+                            <Text fontWeight="bold" fontSize="sm" color="nvr.text.primary">
                               {user.username}
                             </Text>
                             <HStack gap={2}>
@@ -756,24 +720,24 @@ export const UserManagementModal = ({ isOpen, onClose }) => {
             <Box
               w="full"
               maxW="md"
-              bg={deleteModalBg}
+              bg="nvr.bg.modal"
               borderRadius="xl"
               borderWidth="1px"
-              borderColor={deleteModalBorder}
+              borderColor="nvr.border.default"
               shadow="2xl"
               pointerEvents="auto"
               p={5}
               className={isDeleteClosing ? "animate-modal-out" : "animate-modal-in"}
             >
               <VStack gap={4} align="center" textAlign="center">
-                <Center p={3} borderRadius="full" bg={deleteIconBg} color={deleteIconColor}>
+                <Center p={3} borderRadius="full" bg="nvr.brand.dangerBg" color="nvr.brand.dangerIcon">
                   <AlertCircle size={28} />
                 </Center>
                 <VStack gap={1}>
-                  <Heading size="xs" color={deleteTitleColor} fontWeight="bold">
+                  <Heading size="xs" color="nvr.text.primary" fontWeight="bold">
                     ¿Eliminar cuenta de usuario?
                   </Heading>
-                  <Text fontSize="xs" color={deleteTextColor}>
+                  <Text fontSize="xs" color="nvr.text.secondary">
                     ¿Está seguro de que desea eliminar al usuario <strong>{userToDelete.username}</strong>? Esta acción no se puede deshacer y revocará todos sus accesos de inmediato.
                   </Text>
                 </VStack>
@@ -782,8 +746,8 @@ export const UserManagementModal = ({ isOpen, onClose }) => {
                     flex="1"
                     variant="outline"
                     colorPalette="gray"
-                    borderColor={outlineBtnBorder}
-                    _hover={{ bg: outlineBtnHoverBg }}
+                    borderColor="nvr.border.default"
+                    _hover={{ bg: "nvr.bg.muted" }}
                     size="sm"
                     onClick={handleCloseDelete}
                     disabled={actionLoading}
@@ -792,7 +756,7 @@ export const UserManagementModal = ({ isOpen, onClose }) => {
                   </Button>
                   <Button
                     flex="1"
-                    bg="red.600"
+                    bg="nvr.brand.danger"
                     color="white"
                     size="sm"
                     onClick={() => handleDeleteUser(userToDelete.id)}

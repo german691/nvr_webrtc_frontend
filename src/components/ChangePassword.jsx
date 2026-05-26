@@ -29,9 +29,10 @@ export const ChangePassword = ({ onPasswordChanged }) => {
         zIndex={10}
         w="100%"
         maxW="440px"
-        bg="rgba(255, 255, 255, 0.65)"
+        bg="nvr.glass.emptyBg"
         backdropFilter="blur(30px) saturate(190%)"
-        border="1px solid rgba(255, 255, 255, 0.7)"
+        border="1px solid"
+        borderColor="nvr.glass.emptyBorder"
         borderRadius="3xl"
         p={{ base: 6, md: 10 }}
         boxShadow="0 20px 40px -15px rgba(15, 23, 42, 0.08), 0 0 0 1px rgba(15, 23, 42, 0.04)"
@@ -48,7 +49,7 @@ export const ChangePassword = ({ onPasswordChanged }) => {
                 maxH="80px"
                 objectFit="contain"
                 fallback={
-                  <Heading size="xl" color="gray.800" letterSpacing="wider">
+                  <Heading size="xl" color="nvr.text.primary" letterSpacing="wider">
                     UCAMI
                   </Heading>
                 }
@@ -57,14 +58,14 @@ export const ChangePassword = ({ onPasswordChanged }) => {
             <VStack spaceY={1.5} align="center">
               <Heading
                 size="md"
-                color="gray.800"
+                color="nvr.text.primary"
                 fontWeight="semibold"
                 letterSpacing="tight"
                 textAlign="center"
               >
                 Actualización de Seguridad
               </Heading>
-              <Text fontSize="xs" color="gray.500" textAlign="center" px={2}>
+              <Text fontSize="xs" color="nvr.text.secondary" textAlign="center" px={2}>
                 Por política de seguridad de la UCAMI, es obligatorio cambiar la contraseña por defecto en su primer inicio de sesión.
               </Text>
             </VStack>
@@ -78,14 +79,14 @@ export const ChangePassword = ({ onPasswordChanged }) => {
               py={6}
               gap={4}
             >
-              <Box color="emerald.500" bg="emerald.50" p={4} borderRadius="full">
+              <Box color="nvr.brand.success" bg="nvr.brand.successBg" p={4} borderRadius="full">
                 <CheckCircle size={48} />
               </Box>
               <VStack spaceY={1} align="center">
-                <Text fontSize="md" fontWeight="bold" color="emerald.700">
+                <Text fontSize="md" fontWeight="bold" color="nvr.brand.success">
                   ¡Contraseña Actualizada!
                 </Text>
-                <Text fontSize="xs" color="gray.500" textAlign="center">
+                <Text fontSize="xs" color="nvr.text.secondary" textAlign="center">
                   Redireccionando al panel de control...
                 </Text>
               </VStack>
@@ -121,16 +122,17 @@ export const ChangePassword = ({ onPasswordChanged }) => {
                   <Flex
                     align="start"
                     p={4}
-                    bg="red.50"
-                    border="1px solid rgba(239, 68, 68, 0.15)"
+                    bg="nvr.brand.dangerBg"
+                    border="1px solid"
+                    borderColor="nvr.brand.dangerBorder"
                     borderRadius="xl"
                     gap={3}
                     animation="modal-content-scale-in 0.3s ease-out forwards"
                   >
-                    <Box color="red.500" mt={0.5}>
+                    <Box color="nvr.brand.dangerIcon" mt={0.5}>
                       <AlertCircle size={16} />
                     </Box>
-                    <Text fontSize="xs" color="red.700" fontWeight="medium">
+                    <Text fontSize="xs" color="nvr.brand.danger" fontWeight="medium">
                       {error}
                     </Text>
                   </Flex>
@@ -143,7 +145,7 @@ export const ChangePassword = ({ onPasswordChanged }) => {
                   loading={isLoading}
                   loadingText="Actualizando..."
                   h="50px"
-                  bg="blue.600"
+                  bg="nvr.brand.primaryText"
                   color="white"
                   borderRadius="xl"
                   fontSize="sm"

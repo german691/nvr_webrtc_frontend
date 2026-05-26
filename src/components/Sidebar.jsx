@@ -13,48 +13,62 @@ import {
   Button,
   Portal,
 } from "@chakra-ui/react";
-import { useSelector } from "react-redux";
-import {
-  ChevronLeft,
-  Video,
-  Activity,
-  LogOut,
-  Users,
-} from "lucide-react";
+import { useSelector, useDispatch } from "react-redux";
+import { toggleStream } from "../store/slices/cameraSlice";
+import { ChevronLeft, Video, Activity, LogOut, Users } from "lucide-react";
 import { BeatLoader } from "react-spinners";
 import CameraControlCard from "./CameraControlCard";
 import UserManagementModal from "./UserManagementModal";
 import { FfmpegDebugModal } from "./FfmpegDebugModal";
 import logoImg from "../assets/logoh.png";
 import { Tooltip } from "./ui/tooltip";
-import { formatDeviceName } from "../utils/camera.js";
+import {
+  formatDeviceName,
+  getSortedResolutions,
+  getSortedFps,
+} from "../utils/camera.js";
 import { cameraApi } from "../api/camera.api.js";
 
-
 const Sidebar = () => {
-  const sidebarBg = "white";
-  const headerBorder = "gray.100";
-  const headerHeadingColor = "black";
-  const collapseBtnHoverBg = "gray.100";
-  const collapseBtnHoverColor = "gray.900";
-
-  const collapsedBubbleBgStreaming = "blue.50";
-  const collapsedBubbleBgIdle = "gray.50";
-  const collapsedBubbleBorderIdle = "gray.200";
-  const collapsedBubbleColorStreaming = "blue.600";
-  const collapsedBubbleColorIdle = "gray.500";
-  const collapsedBubbleHoverBorderIdle = "gray.400";
-  const collapsedBubbleHoverBgStreaming = "blue.100";
-  const collapsedBubbleHoverBgIdle = "gray.100";
-
-  const footerBorder = "gray.100";
-  const footerBg = "white";
-
+  const dispatch = useDispatch();
   const { list, isLoading, error } = useSelector((state) => state.cameras);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isUserManagementOpen, setIsUserManagementOpen] = useState(false);
   const userRole = localStorage.getItem("nvr_role");
   const [isDebugMode, setIsDebugMode] = useState(false);
+  const [togglingDevs, setTogglingDevs] = useState({});
+
+  const handleToggleCamera = async (cam) => {
+    setTogglingDevs((prev) => ({ ...prev, [cam.dev]: true }));
+    try {
+      if (cam.streaming) {
+        await dispatch(toggleStream({ dev: cam.dev, action: "stop" })).unwrap();
+      } else {
+        const sortedResolutions = getSortedResolutions(cam.modes);
+        const sortedFps = getSortedFps(cam.modes);
+        const defaultRes = sortedResolutions.includes("1920x1080")
+          ? "1920x1080"
+          : sortedResolutions[0];
+        const defaultFps = sortedFps.includes("30") ? "30" : sortedFps[0];
+        const defaultBitrate = "2M";
+
+        await dispatch(
+          toggleStream({
+            dev: cam.dev,
+            resolution: defaultRes,
+            fps: defaultFps,
+            bitrate: defaultBitrate,
+            cleanBitrate: defaultBitrate,
+            action: "start",
+          }),
+        ).unwrap();
+      }
+    } catch (error) {
+      console.error("Fallo al cambiar transmisión en barra reducida:", error);
+    } finally {
+      setTogglingDevs((prev) => ({ ...prev, [cam.dev]: false }));
+    }
+  };
 
   useEffect(() => {
     const checkDebugMode = async () => {
@@ -62,7 +76,10 @@ const Sidebar = () => {
         const res = await cameraApi.getDebugModeStatus();
         setIsDebugMode(!!res.debugMode);
       } catch (err) {
-        console.warn("No se pudo obtener el estado de depuración del backend:", err);
+        console.warn(
+          "No se pudo obtener el estado de depuración del backend:",
+          err,
+        );
       }
     };
     checkDebugMode();
@@ -92,13 +109,12 @@ const Sidebar = () => {
     }, 280); // Ligeramente por debajo de los 300ms de CSS para un desmontado limpio
   };
 
-
   if (isLoading) {
     return (
       <Center p={8} flexDirection="column" gap={4}>
         <BeatLoader size={12} color="#2563eb" />
-        <Text color="gray.600" fontSize="sm">
-          Consultando hardware en nodos Edge...
+        <Text color="nvr.text.secondary" fontSize="sm">
+          Cargando...
         </Text>
       </Center>
     );
@@ -107,7 +123,7 @@ const Sidebar = () => {
   if (error) {
     return (
       <Center p={8}>
-        <Text color="red.500" textAlign="center">
+        <Text color="nvr.brand.danger" textAlign="center">
           {error}
         </Text>
       </Center>
@@ -117,7 +133,7 @@ const Sidebar = () => {
   if (!list || list.length === 0) {
     return (
       <Center p={8}>
-        <Text color="gray.500" fontSize="sm" textAlign="center">
+        <Text color="nvr.text.secondary" fontSize="sm" textAlign="center">
           No se detectaron cámaras conectadas a los servidores.
         </Text>
       </Center>
@@ -129,7 +145,7 @@ const Sidebar = () => {
       w={isCollapsed ? "60px" : "270px"}
       transition="width 0.35s cubic-bezier(0.4, 0, 0.2, 1)"
       h="100%"
-      bg={sidebarBg}
+      bg="nvr.bg.sidebar"
       display="flex"
       flexDirection="column"
       overflow="hidden"
@@ -139,7 +155,7 @@ const Sidebar = () => {
         flexShrink={0}
         p={2}
         borderBottomWidth="1px"
-        borderColor={headerBorder}
+        borderColor="nvr.border.subtle"
         justifyContent={isCollapsed ? "center" : "space-between"}
         alignItems="center"
         w="full"
@@ -174,12 +190,13 @@ const Sidebar = () => {
             style={{
               opacity: isCollapsed ? 0 : 1,
               transform: isCollapsed ? "translateX(-15px)" : "translateX(0)",
-              transition: "opacity 0.2s linear, transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+              transition:
+                "opacity 0.2s linear, transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
             }}
           >
             <Heading
               size="md"
-              color={headerHeadingColor}
+              color="nvr.text.primary"
               letterSpacing="tight"
               whiteSpace="nowrap"
             >
@@ -199,7 +216,7 @@ const Sidebar = () => {
                   fontWeight: "bold",
                   marginTop: "1px",
                   display: "inline-block",
-                  letterSpacing: "0.5px"
+                  letterSpacing: "0.5px",
                 }}
               >
                 MODO DEMO
@@ -208,11 +225,13 @@ const Sidebar = () => {
           </Box>
         </HStack>
         <IconButton
-          aria-label={isCollapsed ? "Expandir barra lateral" : "Colapsar barra lateral"}
+          aria-label={
+            isCollapsed ? "Expandir barra lateral" : "Colapsar barra lateral"
+          }
           size="sm"
           variant="ghost"
-          color="gray.500"
-          _hover={{ bg: collapseBtnHoverBg, color: collapseBtnHoverColor }}
+          color="nvr.text.secondary"
+          _hover={{ bg: "nvr.bg.muted", color: "nvr.text.primary" }}
           onClick={() => setIsCollapsed(!isCollapsed)}
           transition="transform 0.3s ease"
           transform={isCollapsed ? "rotate(180deg)" : "rotate(0)"}
@@ -259,8 +278,13 @@ const Sidebar = () => {
           <VStack gap={2} w="full" align="center">
             {list.map((cam) => {
               const isStreaming = cam.streaming;
+              const isToggling = !!togglingDevs[cam.dev];
               const titleText = `${formatDeviceName(cam.dev)} - ${
-                isStreaming ? "Transmitiendo" : "En Espera"
+                isToggling
+                  ? "Cambiando estado..."
+                  : isStreaming
+                    ? "Apagar Cámara"
+                    : "Visualizar Cámara"
               }`;
               return (
                 <Tooltip
@@ -273,28 +297,59 @@ const Sidebar = () => {
                     position="relative"
                     p={2.5}
                     borderRadius="full"
-                    bg={isStreaming ? collapsedBubbleBgStreaming : collapsedBubbleBgIdle}
+                    bg={isStreaming ? "nvr.brand.activeBg" : "nvr.bg.muted"}
                     borderWidth="2px"
-                    borderColor={isStreaming ? "blue.500" : collapsedBubbleBorderIdle}
-                    color={isStreaming ? collapsedBubbleColorStreaming : collapsedBubbleColorIdle}
-                    cursor="pointer"
-                    onClick={() => setIsCollapsed(false)}
-                    transition="all 0.2s cubic-bezier(0.4, 0, 0.2, 1)"
-                    _hover={{
-                      borderColor: isStreaming ? "blue.600" : collapsedBubbleHoverBorderIdle,
-                      bg: isStreaming ? collapsedBubbleHoverBgStreaming : collapsedBubbleHoverBgIdle,
-                      boxShadow: isStreaming ? "0 0 10px rgba(37, 99, 235, 0.2)" : "none"
+                    borderColor={
+                      isStreaming ? "nvr.brand.primary" : "nvr.border.default"
+                    }
+                    color={
+                      isStreaming
+                        ? "nvr.brand.primaryText"
+                        : "nvr.text.secondary"
+                    }
+                    cursor={isToggling ? "not-allowed" : "pointer"}
+                    onClick={() => {
+                      if (isToggling) return;
+                      handleToggleCamera(cam);
                     }}
+                    transition="all 0.2s cubic-bezier(0.4, 0, 0.2, 1)"
+                    _hover={
+                      !isToggling
+                        ? {
+                            borderColor: isStreaming
+                              ? "nvr.brand.activeHoverBorder"
+                              : "gray.400",
+                            bg: isStreaming
+                              ? "nvr.brand.activeHoverBg"
+                              : "nvr.bg.muted",
+                            boxShadow: isStreaming
+                              ? "0 0 10px rgba(37, 99, 235, 0.2)"
+                              : "none",
+                          }
+                        : undefined
+                    }
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="center"
+                    minW="38px"
+                    minH="38px"
                   >
-                    <Video size={18} />
-                    {isStreaming && (
+                    {isToggling ? (
+                      <BeatLoader
+                        size={3}
+                        color={isStreaming ? "#2563eb" : "#4b5563"}
+                      />
+                    ) : (
+                      <Video size={18} />
+                    )}
+                    {isStreaming && !isToggling && (
                       <Box
                         position="absolute"
                         top="0"
                         right="0"
                         w="2.5"
                         h="2.5"
-                        bg="blue.500"
+                        bg="nvr.brand.primary"
                         borderRadius="full"
                         borderWidth="1.5px"
                         borderColor="white"
@@ -312,14 +367,18 @@ const Sidebar = () => {
         flexShrink={0}
         p={2}
         borderTopWidth="1px"
-        borderColor={footerBorder}
-        bg={footerBg}
+        borderColor="nvr.border.subtle"
+        bg="nvr.bg.sidebar"
         w="full"
         zIndex={10}
       >
         {isCollapsed ? (
           <VStack gap={2} align="center">
-            <Tooltip content="Estado FFmpeg" positioning={{ placement: "right" }} showArrow>
+            <Tooltip
+              content="Estado FFmpeg"
+              positioning={{ placement: "right" }}
+              showArrow
+            >
               <IconButton
                 size="sm"
                 variant="surface"
@@ -331,7 +390,11 @@ const Sidebar = () => {
               </IconButton>
             </Tooltip>
             {userRole === "admin" && (
-              <Tooltip content="Gestión de Usuarios" positioning={{ placement: "right" }} showArrow>
+              <Tooltip
+                content="Gestión de Usuarios"
+                positioning={{ placement: "right" }}
+                showArrow
+              >
                 <IconButton
                   size="sm"
                   variant="surface"
@@ -343,7 +406,11 @@ const Sidebar = () => {
                 </IconButton>
               </Tooltip>
             )}
-            <Tooltip content="Cerrar sesión" positioning={{ placement: "right" }} showArrow>
+            <Tooltip
+              content="Cerrar sesión"
+              positioning={{ placement: "right" }}
+              showArrow
+            >
               <IconButton
                 id="logout-btn-collapsed"
                 size="sm"
