@@ -9,11 +9,13 @@ import {
   Heading,
   HStack,
   Badge,
-  Spinner,
   IconButton,
-  NativeSelect,
   Center,
+  Portal,
+  Select,
+  createListCollection,
 } from "@chakra-ui/react";
+import { BeatLoader } from "react-spinners";
 import {
   User,
   UserPlus,
@@ -27,8 +29,17 @@ import {
   AlertCircle,
   CheckCircle,
   Users,
+  ArrowLeft,
 } from "lucide-react";
 import { cameraApi } from "../api/camera.api";
+
+// Colección para el Select de Chakra UI
+const roleCollection = createListCollection({
+  items: [
+    { value: "viewer", label: "Visor (Cámaras)" },
+    { value: "admin", label: "Administrador" },
+  ],
+});
 
 export const UserManagementModal = ({ isOpen, onClose }) => {
   const [users, setUsers] = useState([]);
@@ -45,6 +56,15 @@ export const UserManagementModal = ({ isOpen, onClose }) => {
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("viewer");
   const [showPassword, setShowPassword] = useState(false);
+
+  // animación
+  const [isClosing, setIsClosing] = useState(false);
+  const [isDeleteClosing, setIsDeleteClosing] = useState(false);
+
+  // confirmación de eliminación
+  const [userToDelete, setUserToDelete] = useState(null);
+
+  const isFormOpen = isCreating || !!editingUser || !!resettingPasswordUser;
 
   const fetchUsers = async () => {
     setIsLoading(true);
@@ -67,13 +87,6 @@ export const UserManagementModal = ({ isOpen, onClose }) => {
     }
   };
 
-  useEffect(() => {
-    if (isOpen) {
-      fetchUsers();
-      resetForm();
-    }
-  }, [isOpen]);
-
   const resetForm = () => {
     setUsername("");
     setPassword("");
@@ -85,6 +98,16 @@ export const UserManagementModal = ({ isOpen, onClose }) => {
     setError(null);
   };
 
+  useEffect(() => {
+    if (isOpen) {
+      const timer = setTimeout(() => {
+        fetchUsers();
+        resetForm();
+      }, 0);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
+
   const showNotification = (msg, type = "success") => {
     if (type === "success") {
       setSuccessMsg(msg);
@@ -95,14 +118,41 @@ export const UserManagementModal = ({ isOpen, onClose }) => {
     }
   };
 
+  const handleCloseModal = () => {
+    setIsClosing(true);
+    setTimeout(() => {
+      onClose();
+      setIsClosing(false);
+    }, 280);
+  };
+
+  const handleOpenDelete = (user) => {
+    setUserToDelete(user);
+    setIsDeleteClosing(false);
+  };
+
+  const handleCloseDelete = () => {
+    setIsDeleteClosing(true);
+    setTimeout(() => {
+      setUserToDelete(null);
+      setIsDeleteClosing(false);
+    }, 280);
+  };
+
   const handleCreateUser = async (e) => {
     e.preventDefault();
     if (!username.trim() || !password.trim()) {
-      showNotification("Por favor, complete todos los campos obligatorios.", "error");
+      showNotification(
+        "Por favor, complete todos los campos obligatorios.",
+        "error",
+      );
       return;
     }
     if (password.length < 6) {
-      showNotification("La contraseña debe tener al menos 6 caracteres.", "error");
+      showNotification(
+        "La contraseña debe tener al menos 6 caracteres.",
+        "error",
+      );
       return;
     }
 
@@ -117,7 +167,9 @@ export const UserManagementModal = ({ isOpen, onClose }) => {
       });
 
       if (response && response.status === "success") {
-        showNotification("Usuario creado con éxito. Se obligará a cambiar clave al ingresar.");
+        showNotification(
+          "Usuario creado con éxito. Se obligará a cambiar clave al ingresar.",
+        );
         fetchUsers();
         resetForm();
       } else {
@@ -125,7 +177,9 @@ export const UserManagementModal = ({ isOpen, onClose }) => {
       }
     } catch (err) {
       console.error(err);
-      setError(err.response?.data?.message || "Error al intentar crear el usuario.");
+      setError(
+        err.response?.data?.message || "Error al intentar crear el usuario.",
+      );
     } finally {
       setActionLoading(false);
     }
@@ -134,7 +188,10 @@ export const UserManagementModal = ({ isOpen, onClose }) => {
   const handleUpdateUser = async (e) => {
     e.preventDefault();
     if (!username.trim()) {
-      showNotification("Por favor, ingrese un nombre de usuario válido.", "error");
+      showNotification(
+        "Por favor, ingrese un nombre de usuario válido.",
+        "error",
+      );
       return;
     }
 
@@ -156,7 +213,10 @@ export const UserManagementModal = ({ isOpen, onClose }) => {
       }
     } catch (err) {
       console.error(err);
-      setError(err.response?.data?.message || "Error al intentar actualizar el usuario.");
+      setError(
+        err.response?.data?.message ||
+          "Error al intentar actualizar el usuario.",
+      );
     } finally {
       setActionLoading(false);
     }
@@ -165,7 +225,10 @@ export const UserManagementModal = ({ isOpen, onClose }) => {
   const handleResetPassword = async (e) => {
     e.preventDefault();
     if (!password.trim() || password.length < 6) {
-      showNotification("La contraseña debe tener al menos 6 caracteres.", "error");
+      showNotification(
+        "La contraseña debe tener al menos 6 caracteres.",
+        "error",
+      );
       return;
     }
 
@@ -179,7 +242,9 @@ export const UserManagementModal = ({ isOpen, onClose }) => {
       );
 
       if (response && response.status === "success") {
-        showNotification(response.message || "Contraseña restablecida de forma exitosa.");
+        showNotification(
+          response.message || "Contraseña restablecida de forma exitosa.",
+        );
         fetchUsers();
         resetForm();
       } else {
@@ -187,17 +252,15 @@ export const UserManagementModal = ({ isOpen, onClose }) => {
       }
     } catch (err) {
       console.error(err);
-      setError(err.response?.data?.message || "Error al cambiar la contraseña.");
+      setError(
+        err.response?.data?.message || "Error al cambiar la contraseña.",
+      );
     } finally {
       setActionLoading(false);
     }
   };
 
   const handleDeleteUser = async (userId) => {
-    if (!window.confirm("¿Está seguro de que desea eliminar a este usuario permanentemente?")) {
-      return;
-    }
-
     setActionLoading(true);
     setError(null);
 
@@ -206,12 +269,15 @@ export const UserManagementModal = ({ isOpen, onClose }) => {
       if (response && response.status === "success") {
         showNotification("Usuario eliminado correctamente.");
         fetchUsers();
+        handleCloseDelete();
       } else {
         setError(response.message || "Error al eliminar el usuario.");
       }
     } catch (err) {
       console.error(err);
-      setError(err.response?.data?.message || "Error al intentar eliminar el usuario.");
+      setError(
+        err.response?.data?.message || "Error al intentar eliminar el usuario.",
+      );
     } finally {
       setActionLoading(false);
     }
@@ -233,6 +299,7 @@ export const UserManagementModal = ({ isOpen, onClose }) => {
 
   return (
     <Box>
+      {/* CAPA DE FONDO DEL MODAL */}
       <Box
         position="fixed"
         top={0}
@@ -242,8 +309,8 @@ export const UserManagementModal = ({ isOpen, onClose }) => {
         bg="blackAlpha.600"
         backdropFilter="blur(8px)"
         zIndex={1900}
-        onClick={onClose}
-        animation="fade-in 0.25s ease-out forwards"
+        onClick={handleCloseModal}
+        className={isClosing ? "animate-backdrop-out" : "animate-backdrop-in"}
       />
 
       <Flex
@@ -261,66 +328,110 @@ export const UserManagementModal = ({ isOpen, onClose }) => {
         <Box
           w="full"
           maxW="2xl"
-          bg="white"
-          borderRadius="2xl"
+          bg="nvr.bg.modal"
+          borderRadius="xl"
           borderWidth="1px"
-          borderColor="gray.200"
+          borderColor="nvr.border.default"
           shadow="2xl"
           pointerEvents="auto"
           display="flex"
           flexDirection="column"
           maxH="85vh"
           overflow="hidden"
-          animation="modal-content-scale-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards"
+          className={isClosing ? "animate-modal-out" : "animate-modal-in"}
+          transition="all 0.3s cubic-bezier(0.16, 1, 0.3, 1)"
         >
+          {/* HEADER DINÁMICO SEGÚN EL CONTENIDO */}
           <Flex
-            p={4}
+            p={3}
             borderBottomWidth="1px"
-            borderColor="gray.100"
+            borderColor="nvr.border.subtle"
             justify="space-between"
             align="center"
-            bg="gray.50"
+            bg="nvr.bg.headerBg"
           >
             <HStack gap={3}>
-              <Box p={2} borderRadius="xl" bg="gray.100" color="gray.800">
-                <Users size={20} />
-              </Box>
+              <Center
+                p={2}
+                borderRadius="lg"
+                bg={isFormOpen ? "nvr.brand.activeBg" : "nvr.bg.muted"}
+                color={
+                  isFormOpen ? "nvr.brand.primaryText" : "nvr.text.primary"
+                }
+              >
+                {isFormOpen ? (
+                  resettingPasswordUser ? (
+                    <Key size={18} />
+                  ) : (
+                    <UserPlus size={18} />
+                  )
+                ) : (
+                  <Users size={20} />
+                )}
+              </Center>
               <VStack align="stretch" gap={0}>
-                <Text fontWeight="bold" fontSize="md" color="gray.800">
-                  Gestión Administrativa de Usuarios
+                <Text fontWeight="bold" fontSize="md" color="nvr.text.primary">
+                  {isCreating && "Registrar Nuevo Usuario"}
+                  {editingUser && "Editar Perfil de Usuario"}
+                  {resettingPasswordUser && "Restablecer Contraseña"}
+                  {!isFormOpen && "Gestión Administrativa de Usuarios"}
                 </Text>
-                <Text fontSize="2xs" color="gray.500">
-                  Crear, editar, restablecer contraseñas y eliminar accesos del NVR
+                <Text fontSize="2xs" color="nvr.text.secondary">
+                  {isCreating && "Agrega una nueva cuenta de acceso al sistema"}
+                  {editingUser &&
+                    `Modifica los privilegios del usuario: ${editingUser.username}`}
+                  {resettingPasswordUser &&
+                    `Genera una clave temporal para: ${resettingPasswordUser.username}`}
+                  {!isFormOpen &&
+                    "Crear, editar, restablecer contraseñas y eliminar accesos del NVR"}
                 </Text>
               </VStack>
             </HStack>
-            <IconButton
-              size="sm"
-              variant="ghost"
-              colorPalette="gray"
-              borderRadius="xl"
-              onClick={onClose}
-              aria-label="Cerrar modal"
-            >
-              <X size={18} />
-            </IconButton>
-          </Flex>
 
+            {isFormOpen ? (
+              <IconButton
+                size="sm"
+                variant="ghost"
+                colorPalette="gray"
+                borderRadius="xl"
+                onClick={resetForm}
+                title="Volver al listado"
+                aria-label="Volver al listado"
+              >
+                <ArrowLeft size={18} />
+              </IconButton>
+            ) : (
+              <IconButton
+                size="sm"
+                variant="ghost"
+                colorPalette="gray"
+                borderRadius="xl"
+                onClick={handleCloseModal}
+                aria-label="Cerrar modal"
+              >
+                <X size={18} />
+              </IconButton>
+            )}
+          </Flex>
           {successMsg && (
             <Flex
-              bg="emerald.50"
+              bg="nvr.brand.successBg"
               borderBottomWidth="1px"
-              borderColor="emerald.200"
+              borderColor="nvr.brand.successBorder"
               p={3.5}
               px={4}
               gap={3}
               align="center"
               animation="slide-down 0.2s ease-out"
             >
-              <Box color="emerald.500">
+              <Box color="nvr.brand.success">
                 <CheckCircle size={16} />
               </Box>
-              <Text fontSize="xs" fontWeight="semibold" color="emerald.700">
+              <Text
+                fontSize="xs"
+                fontWeight="semibold"
+                color="nvr.brand.success"
+              >
                 {successMsg}
               </Text>
             </Flex>
@@ -328,231 +439,297 @@ export const UserManagementModal = ({ isOpen, onClose }) => {
 
           {error && (
             <Flex
-              bg="red.50"
+              bg="nvr.brand.dangerBg"
               borderBottomWidth="1px"
-              borderColor="red.200"
+              borderColor="nvr.brand.dangerBorder"
               p={3.5}
               px={4}
               gap={3}
               align="center"
               animation="slide-down 0.2s ease-out"
             >
-              <Box color="red.500">
+              <Box color="nvr.brand.dangerIcon">
                 <AlertCircle size={16} />
               </Box>
-              <Text fontSize="xs" fontWeight="semibold" color="red.700">
+              <Text
+                fontSize="xs"
+                fontWeight="semibold"
+                color="nvr.brand.danger"
+              >
                 {error}
               </Text>
             </Flex>
           )}
 
-          <Box flex="1" overflowY="auto" p={5} bg="gray.50/50">
-            {(isCreating || editingUser || resettingPasswordUser) && (
-              <Box
-                bg="rgba(255, 255, 255, 0.8)"
-                backdropFilter="blur(20px)"
-                borderWidth="1px"
-                borderColor="gray.200"
-                borderRadius="xl"
-                p={4}
-                mb={5}
-                shadow="sm"
-                animation="slide-down 0.25s ease-out"
-              >
-                <Flex justify="space-between" align="center" mb={4}>
-                  <Heading size="xs" color="gray.700" fontWeight="bold">
-                    {isCreating && "Registrar Nuevo Usuario"}
-                    {editingUser && `Editar Perfil: ${editingUser.username}`}
-                    {resettingPasswordUser && `Restablecer Clave de: ${resettingPasswordUser.username}`}
-                  </Heading>
-                  <Button
-                    size="2xs"
-                    variant="ghost"
-                    colorPalette="red"
-                    borderRadius="lg"
-                    onClick={resetForm}
-                  >
-                    Cancelar
-                  </Button>
-                </Flex>
-
-                <form
-                  onSubmit={
-                    isCreating
-                      ? handleCreateUser
-                      : editingUser
+          {/* CONTENIDO DINÁMICO: FORMULARIO O LISTADO */}
+          <Box flex="1" overflowY="auto" p={4} bg="nvr.bg.muted">
+            {isFormOpen ? (
+              /* FORMULARIO DE ACCIONES */
+              <form
+                onSubmit={
+                  isCreating
+                    ? handleCreateUser
+                    : editingUser
                       ? handleUpdateUser
                       : handleResetPassword
-                  }
-                >
-                  <VStack gap={4} align="stretch">
-                    {!resettingPasswordUser && (
-                      <HStack gap={4} align="start">
-                        <Box flex="1">
-                          <Text fontSize="2xs" fontWeight="bold" color="gray.700" mb={1.5} textTransform="uppercase">
-                            Nombre de Usuario
-                          </Text>
-                          <Input
-                            placeholder="Ej. JuanPerez"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
-                            h="38px"
-                            borderRadius="lg"
-                            bg="white"
-                            fontSize="sm"
-                            disabled={actionLoading}
-                            required
-                          />
-                        </Box>
-
-                        <Box w="180px">
-                          <Text fontSize="2xs" fontWeight="bold" color="gray.700" mb={1.5} textTransform="uppercase">
-                            Rol del Usuario
-                          </Text>
-                          <NativeSelect.Root size="sm" h="38px" bg="white" borderRadius="lg">
-                            <NativeSelect.Field
-                              value={role}
-                              onChange={(e) => setRole(e.target.value)}
-                              disabled={actionLoading}
-                            >
-                              <option value="viewer">Visor (Cámaras)</option>
-                              <option value="admin">Administrador</option>
-                            </NativeSelect.Field>
-                          </NativeSelect.Root>
-                        </Box>
-                      </HStack>
-                    )}
-
-                    {(isCreating || resettingPasswordUser) && (
-                      <Box>
-                        <Text fontSize="2xs" fontWeight="bold" color="gray.700" mb={1.5} textTransform="uppercase">
-                          {resettingPasswordUser ? "Nueva Contraseña" : "Contraseña Inicial"}
+                }
+              >
+                <VStack gap={4} align="stretch" p={1}>
+                  {!resettingPasswordUser && (
+                    <HStack gap={3} align="start">
+                      <Box flex="1">
+                        <Text
+                          fontSize="2xs"
+                          fontWeight="bold"
+                          color="nvr.text.secondary"
+                          mb={1.5}
+                          textTransform="uppercase"
+                        >
+                          Nombre de Usuario
                         </Text>
-                        <Flex position="relative" align="center">
-                          <Input
-                            type={showPassword ? "text" : "password"}
-                            placeholder="Mínimo 6 caracteres"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            h="38px"
-                            borderRadius="lg"
-                            bg="white"
-                            fontSize="sm"
-                            disabled={actionLoading}
-                            pr="40px"
-                            required
-                          />
-                          <IconButton
-                            type="button"
-                            position="absolute"
-                            right="2"
-                            variant="ghost"
-                            h="28px"
-                            w="28px"
-                            p={0}
-                            minW="auto"
-                            color="gray.400"
-                            onClick={() => setShowPassword(!showPassword)}
-                            disabled={actionLoading}
-                          >
-                            {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
-                          </IconButton>
-                        </Flex>
-                        {isCreating && (
-                          <Text fontSize="3xs" color="gray.500" mt={1}>
-                            * Nota: Por seguridad, se obligará al usuario a redefinir esta clave en su primer acceso.
-                          </Text>
-                        )}
+                        <Input
+                          placeholder="Ej. JuanPerez"
+                          value={username}
+                          onChange={(e) => setUsername(e.target.value)}
+                          h="38px"
+                          borderRadius="lg"
+                          bg="nvr.bg.card"
+                          borderColor="nvr.border.interactive"
+                          fontSize="sm"
+                          disabled={actionLoading}
+                          required
+                        />
                       </Box>
-                    )}
 
+                      <Box w="180px">
+                        <Text
+                          fontSize="2xs"
+                          fontWeight="bold"
+                          color="nvr.text.secondary"
+                          mb={1.5}
+                          textTransform="uppercase"
+                        >
+                          Rol del Usuario
+                        </Text>
+                        <Select.Root
+                          size="sm"
+                          collection={roleCollection}
+                          value={[role]}
+                          onValueChange={(e) => setRole(e.value[0])}
+                          disabled={actionLoading}
+                        >
+                          <Select.HiddenSelect name="role" />
+                          <Select.Control>
+                            <Select.Trigger
+                              bg="nvr.bg.card"
+                              borderColor="nvr.border.interactive"
+                              borderRadius="lg"
+                              h="38px"
+                            >
+                              <Select.ValueText placeholder="Seleccionar rol" />
+                            </Select.Trigger>
+                            <Select.IndicatorGroup>
+                              <Select.Indicator />
+                            </Select.IndicatorGroup>
+                          </Select.Control>
+                          <Select.Positioner>
+                            <Select.Content
+                              bg="nvr.bg.modal"
+                              borderColor="nvr.border.default"
+                              shadow="md"
+                              borderRadius="lg"
+                              zIndex={2200}
+                            >
+                              {roleCollection.items.map((item) => (
+                                <Select.Item
+                                  item={item}
+                                  key={item.value}
+                                  _hover={{ bg: "nvr.bg.muted" }}
+                                >
+                                  {item.label}
+                                </Select.Item>
+                              ))}
+                            </Select.Content>
+                          </Select.Positioner>
+                        </Select.Root>
+                      </Box>
+                    </HStack>
+                  )}
+
+                  {(isCreating || resettingPasswordUser) && (
+                    <Box>
+                      <Text
+                        fontSize="2xs"
+                        fontWeight="bold"
+                        color="nvr.text.secondary"
+                        mb={1.5}
+                        textTransform="uppercase"
+                      >
+                        {resettingPasswordUser
+                          ? "Nueva Contraseña"
+                          : "Contraseña Inicial"}
+                      </Text>
+                      <Flex position="relative" align="center">
+                        <Input
+                          type={showPassword ? "text" : "password"}
+                          placeholder="Mínimo 6 caracteres"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          h="38px"
+                          borderRadius="lg"
+                          bg="nvr.bg.card"
+                          borderColor="nvr.border.interactive"
+                          fontSize="sm"
+                          disabled={actionLoading}
+                          pr="40px"
+                          required
+                        />
+                        <IconButton
+                          type="button"
+                          position="absolute"
+                          right="2"
+                          variant="ghost"
+                          h="28px"
+                          w="28px"
+                          p={0}
+                          minW="auto"
+                          color="gray.400"
+                          onClick={() => setShowPassword(!showPassword)}
+                          disabled={actionLoading}
+                        >
+                          {showPassword ? (
+                            <EyeOff size={14} />
+                          ) : (
+                            <Eye size={14} />
+                          )}
+                        </IconButton>
+                      </Flex>
+                      {isCreating && (
+                        <Text fontSize="2xs" color="gray.500" mt={1.5}>
+                          * Nota: Por seguridad, se obligará al usuario a
+                          redefinir esta clave en su primer acceso.
+                        </Text>
+                      )}
+                    </Box>
+                  )}
+
+                  <HStack gap={3} pt={2}>
+                    <Button
+                      variant="outline"
+                      colorPalette="gray"
+                      borderColor="nvr.border.default"
+                      _hover={{ bg: "nvr.bg.muted" }}
+                      onClick={resetForm}
+                      disabled={actionLoading}
+                      h="38px"
+                      flex="1"
+                      fontSize="xs"
+                      fontWeight="bold"
+                    >
+                      Cancelar
+                    </Button>
                     <Button
                       type="submit"
                       loading={actionLoading}
                       loadingText="Guardando..."
                       h="38px"
-                      bg="blue.600"
+                      bg="nvr.brand.primaryText"
                       color="white"
-                      borderRadius="lg"
                       fontSize="xs"
                       fontWeight="bold"
+                      flex="2"
                       _hover={{
                         bg: "blue.700",
                       }}
                     >
                       Guardar Cambios
                     </Button>
-                  </VStack>
-                </form>
-              </Box>
-            )}
-
-            {isLoading ? (
+                  </HStack>
+                </VStack>
+              </form>
+            ) : isLoading ? (
+              /* ESTADO DE CARGA DEL LISTADO */
               <Flex py={12} direction="column" align="center" gap={4}>
-                <Spinner color="blue.600" size="lg" />
+                <BeatLoader size={12} color="#2563eb" />
                 <Text fontSize="xs" color="gray.500">
                   Cargando listado de usuarios...
                 </Text>
               </Flex>
             ) : (
+              /* LISTADO DE USUARIOS */
               <Box>
-                {!isCreating && !editingUser && !resettingPasswordUser && (
-                  <Button
-                    size="sm"
-                    variant="solid"
-                    colorPalette="blue"
-                    borderRadius="xl"
-                    onClick={() => setIsCreating(true)}
-                    mb={4}
-                    gap={2}
-                  >
-                    <UserPlus size={14} />
-                    Registrar Nuevo Usuario
-                  </Button>
-                )}
+                <Button
+                  size="sm"
+                  variant="solid"
+                  colorPalette="blue"
+                  onClick={() => setIsCreating(true)}
+                  mb={4}
+                  gap={2}
+                >
+                  <UserPlus size={14} />
+                  Registrar Nuevo Usuario
+                </Button>
 
-                <VStack gap={3.5} align="stretch">
+                <VStack gap={2.5} align="stretch">
                   {users.map((user) => (
                     <Box
                       key={user.id}
-                      p={3.5}
-                      bg="white"
+                      p={2.5}
+                      bg="nvr.bg.card"
                       borderWidth="1px"
-                      borderColor="gray.200"
-                      borderRadius="xl"
+                      borderColor="nvr.border.default"
+                      borderRadius="lg"
                       shadow="xs"
                       transition="all 0.2s"
-                      _hover={{ shadow: "sm", borderColor: "gray.300" }}
+                      _hover={{
+                        shadow: "sm",
+                        borderColor: "nvr.border.interactive",
+                      }}
                     >
-                      <Flex justify="space-between" align="center" wrap="wrap" gap={3}>
+                      <Flex
+                        justify="space-between"
+                        align="center"
+                        wrap="wrap"
+                        gap={3}
+                      >
                         <HStack gap={3}>
                           <Center
                             p={2.5}
                             borderRadius="full"
-                            bg="gray.100"
-                            color="gray.800"
+                            bg="nvr.bg.muted"
+                            color="nvr.text.primary"
                           >
-                            {user.role === "admin" ? <Shield size={16} /> : <User size={16} />}
+                            {user.role === "admin" ? (
+                              <Shield size={16} />
+                            ) : (
+                              <User size={16} />
+                            )}
                           </Center>
                           <VStack align="stretch" gap={0.5}>
-                            <Text fontWeight="bold" fontSize="sm" color="gray.800">
+                            <Text
+                              fontWeight="bold"
+                              fontSize="sm"
+                              color="nvr.text.primary"
+                            >
                               {user.username}
                             </Text>
                             <HStack gap={2}>
                               <Badge
                                 colorPalette="gray"
                                 variant="subtle"
-                                fontSize="3xs"
+                                fontSize="2xs"
                                 borderRadius="md"
                                 px={1.5}
                               >
-                                {user.role === "admin" ? "Administrador" : "Visor"}
+                                {user.role === "admin"
+                                  ? "Administrador"
+                                  : "Visor"}
                               </Badge>
                               {user.password_changed === 0 && (
                                 <Badge
                                   colorPalette="orange"
                                   variant="subtle"
-                                  fontSize="3xs"
+                                  fontSize="2xs"
                                   borderRadius="md"
                                   px={1.5}
                                 >
@@ -568,7 +745,6 @@ export const UserManagementModal = ({ isOpen, onClose }) => {
                             size="xs"
                             variant="ghost"
                             colorPalette="gray"
-                            borderRadius="lg"
                             onClick={() => startEdit(user)}
                             title="Editar Perfil"
                             disabled={actionLoading}
@@ -579,7 +755,6 @@ export const UserManagementModal = ({ isOpen, onClose }) => {
                             size="xs"
                             variant="ghost"
                             colorPalette="gray"
-                            borderRadius="lg"
                             onClick={() => startResetPassword(user)}
                             title="Restablecer Contraseña"
                             disabled={actionLoading}
@@ -590,8 +765,7 @@ export const UserManagementModal = ({ isOpen, onClose }) => {
                             size="xs"
                             variant="ghost"
                             colorPalette="red"
-                            borderRadius="lg"
-                            onClick={() => handleDeleteUser(user.id)}
+                            onClick={() => handleOpenDelete(user)}
                             title="Eliminar Cuenta"
                             disabled={actionLoading}
                           >
@@ -607,6 +781,99 @@ export const UserManagementModal = ({ isOpen, onClose }) => {
           </Box>
         </Box>
       </Flex>
+
+      {/* POPUP ALERT DIALOG: CONFIRMACIÓN DE ELIMINACIÓN DE USUARIO */}
+      {userToDelete && (
+        <Portal>
+          <Box
+            position="fixed"
+            top={0}
+            left={0}
+            right={0}
+            bottom={0}
+            bg="blackAlpha.600"
+            backdropFilter="blur(4px)"
+            zIndex={2200}
+            onClick={handleCloseDelete}
+            className={
+              isDeleteClosing ? "animate-backdrop-out" : "animate-backdrop-in"
+            }
+          />
+          <Flex
+            position="fixed"
+            top={0}
+            left={0}
+            right={0}
+            bottom={0}
+            zIndex={2300}
+            align="center"
+            justify="center"
+            p={4}
+            pointerEvents="none"
+          >
+            <Box
+              w="full"
+              maxW="md"
+              bg="nvr.bg.modal"
+              borderRadius="xl"
+              borderWidth="1px"
+              borderColor="nvr.border.default"
+              shadow="2xl"
+              pointerEvents="auto"
+              p={5}
+              className={
+                isDeleteClosing ? "animate-modal-out" : "animate-modal-in"
+              }
+            >
+              <VStack gap={4} align="center" textAlign="center">
+                <Center
+                  p={3}
+                  borderRadius="full"
+                  bg="nvr.brand.dangerBg"
+                  color="nvr.brand.dangerIcon"
+                >
+                  <AlertCircle size={28} />
+                </Center>
+                <VStack gap={1}>
+                  <Heading size="xs" color="nvr.text.primary" fontWeight="bold">
+                    ¿Eliminar cuenta de usuario?
+                  </Heading>
+                  <Text fontSize="xs" color="nvr.text.secondary">
+                    ¿Está seguro de que desea eliminar al usuario{" "}
+                    <strong>{userToDelete.username}</strong>? Esta acción no se
+                    puede deshacer y revocará todos sus accesos de inmediato.
+                  </Text>
+                </VStack>
+                <HStack gap={3} w="full">
+                  <Button
+                    flex="1"
+                    variant="outline"
+                    colorPalette="gray"
+                    borderColor="nvr.border.default"
+                    _hover={{ bg: "nvr.bg.muted" }}
+                    size="sm"
+                    onClick={handleCloseDelete}
+                    disabled={actionLoading}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    flex="1"
+                    bg="nvr.brand.danger"
+                    color="white"
+                    size="sm"
+                    onClick={() => handleDeleteUser(userToDelete.id)}
+                    loading={actionLoading}
+                    _hover={{ bg: "red.700" }}
+                  >
+                    Eliminar Cuenta
+                  </Button>
+                </HStack>
+              </VStack>
+            </Box>
+          </Flex>
+        </Portal>
+      )}
     </Box>
   );
 };

@@ -6,6 +6,7 @@ import Sidebar from "./components/Sidebar";
 import VideoWall from "./components/VideoWall";
 import Login from "./components/Login";
 import ChangePassword from "./components/ChangePassword";
+import VideoWallEditor from "./components/VideoWallEditor";
 
 function App() {
   const dispatch = useDispatch();
@@ -15,6 +16,7 @@ function App() {
   const [needsPasswordChange, setNeedsPasswordChange] = useState(
     () => localStorage.getItem("nvr_needs_password_change") === "true"
   );
+  const [currentView, setCurrentView] = useState("videowall");
 
   useEffect(() => {
     if (isAuthenticated && !needsPasswordChange) {
@@ -49,6 +51,10 @@ function App() {
     return <ChangePassword onPasswordChanged={handlePasswordChanged} />;
   }
 
+  if (currentView === "layout-editor") {
+    return <VideoWallEditor onClose={() => setCurrentView("videowall")} />;
+  }
+
   return (
     <Flex
       h="100vh"
@@ -56,19 +62,17 @@ function App() {
       bgGradient="to-br, gray.50, gray.150"
       color="gray.900"
       overflow="hidden"
-      p={2.5}
-      gap={2.5}
+      p={0}
+      gap={0}
     >
       <Box
         bg="white"
-        borderRadius="3xl"
-        borderWidth="1px"
-        borderColor="gray.200"
+        borderRightWidth="1px"
+        borderRightColor="gray.200"
         display="flex"
         flexDirection="column"
         zIndex={10}
         overflow="hidden"
-        shadow="xs"
         transition="all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
       >
         <Box flex="1" overflow="hidden" display="flex" flexDirection="column">
@@ -78,14 +82,10 @@ function App() {
       <Box
         flex="1"
         bg="gray.100"
-        borderRadius="3xl"
-        borderWidth="1px"
-        borderColor="gray.200"
         position="relative"
         overflow="hidden"
-        shadow="xs"
       >
-        <VideoWall />
+        <VideoWall onOpenLayoutEditor={() => setCurrentView("layout-editor")} />
       </Box>
     </Flex>
   );

@@ -9,14 +9,18 @@ import {
   Heading,
   Image,
 } from "@chakra-ui/react";
-import { Lock, User, AlertCircle, Eye, EyeOff } from "lucide-react";
+import { User, AlertCircle } from "lucide-react";
 import { cameraApi } from "../api/camera.api";
 import logoImg from "../assets/logof.png";
+import ScreenLayout from "./ui/ScreenLayout";
+import PasswordInput from "./ui/PasswordInput";
 
+/**
+ * Vista de Inicio de Sesión de la aplicación.
+ */
 export const Login = ({ onLoginSuccess }) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -33,7 +37,12 @@ export const Login = ({ onLoginSuccess }) => {
     try {
       const response = await cameraApi.login(username, password);
       if (response && response.status === "success" && response.token) {
-        onLoginSuccess(response.token, response.username, response.role, response.needsPasswordChange);
+        onLoginSuccess(
+          response.token,
+          response.username,
+          response.role,
+          response.needsPasswordChange,
+        );
       } else {
         setError(response.message || "Error al iniciar sesión.");
       }
@@ -49,70 +58,20 @@ export const Login = ({ onLoginSuccess }) => {
   };
 
   return (
-    <Flex
-      position="relative"
-      h="100vh"
-      w="100vw"
-      bg="#f8fafc"
-      align="center"
-      justify="center"
-      overflow="hidden"
-      p={4}
-    >
-      {/* 1. Círculos dinámicos con gradientes pastel para el efecto Glassmorphism */}
-      <Box
-        position="absolute"
-        top="5%"
-        left="10%"
-        w="450px"
-        h="450px"
-        bgGradient="radial(circle, rgba(6, 182, 212, 0.08) 0%, rgba(6, 182, 212, 0) 70%)"
-        borderRadius="full"
-        filter="blur(60px)"
-        className="float-slow-bg"
-        pointerEvents="none"
-        zIndex={1}
-      />
-      <Box
-        position="absolute"
-        bottom="8%"
-        right="8%"
-        w="500px"
-        h="500px"
-        bgGradient="radial(circle, rgba(59, 130, 246, 0.08) 0%, rgba(59, 130, 246, 0) 70%)"
-        borderRadius="full"
-        filter="blur(70px)"
-        className="float-reverse-bg"
-        pointerEvents="none"
-        zIndex={1}
-      />
-
-      {/* 2. Fondo de Puntilleado de Alta Precisión (Dot Grid Background) overlay de los círculos */}
-      <Box
-        position="absolute"
-        top={0}
-        left={0}
-        right={0}
-        bottom={0}
-        backgroundImage="radial-gradient(rgba(100, 116, 139, 0.24) 1.5px, transparent 1.5px)"
-        backgroundSize="20px 20px"
-        pointerEvents="none"
-        zIndex={2}
-      />
-
-      {/* Contenedor principal de Login con estética premium frosted-glass claro */}
+    <ScreenLayout>
+      {/* Contenedor principal de Login */}
       <Box
         position="relative"
         zIndex={10}
         w="100%"
         maxW="440px"
-        bg="rgba(255, 255, 255, 0.65)"
+        bg="nvr.glass.emptyBg"
         backdropFilter="blur(30px) saturate(190%)"
-        border="1px solid rgba(255, 255, 255, 0.7)"
+        border="1px solid"
+        borderColor="nvr.glass.emptyBorder"
         borderRadius="3xl"
         p={{ base: 6, md: 10 }}
         boxShadow="0 20px 40px -15px rgba(15, 23, 42, 0.08), 0 0 0 1px rgba(15, 23, 42, 0.04)"
-        animation="modal-content-scale-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards"
         id="login-panel"
       >
         <VStack spaceY={6} align="stretch">
@@ -130,7 +89,11 @@ export const Login = ({ onLoginSuccess }) => {
                 maxH="100px"
                 objectFit="contain"
                 fallback={
-                  <Heading size="xl" color="gray.800" letterSpacing="wider">
+                  <Heading
+                    size="xl"
+                    color="nvr.text.primary"
+                    letterSpacing="wider"
+                  >
                     UCAMI
                   </Heading>
                 }
@@ -139,14 +102,14 @@ export const Login = ({ onLoginSuccess }) => {
             <VStack spaceY={1} align="center">
               <Heading
                 size="md"
-                color="gray.800"
+                color="nvr.text.primary"
                 fontWeight="semibold"
                 letterSpacing="tight"
                 id="login-title"
               >
                 Control de Cámaras de Odontología
               </Heading>
-              <Text fontSize="xs" color="gray.500" textAlign="center">
+              <Text fontSize="xs" color="nvr.text.secondary" textAlign="center">
                 Odontología • Acceso Tecnológico Restringido
               </Text>
             </VStack>
@@ -160,7 +123,7 @@ export const Login = ({ onLoginSuccess }) => {
                 <Text
                   fontSize="xs"
                   fontWeight="semibold"
-                  color="gray.700"
+                  color="nvr.text.primary"
                   mb={2}
                   letterSpacing="wider"
                   textTransform="uppercase"
@@ -168,7 +131,12 @@ export const Login = ({ onLoginSuccess }) => {
                   Usuario
                 </Text>
                 <Flex position="relative" align="center">
-                  <Box position="absolute" left={4} color="gray.400" zIndex={2}>
+                  <Box
+                    position="absolute"
+                    left={4}
+                    color="nvr.text.secondary"
+                    zIndex={2}
+                  >
                     <User size={18} />
                   </Box>
                   <Input
@@ -180,16 +148,17 @@ export const Login = ({ onLoginSuccess }) => {
                     pl={12}
                     pr={4}
                     h="50px"
-                    bg="rgba(255, 255, 255, 0.8)"
-                    border="1px solid rgba(15, 23, 42, 0.12)"
+                    bg="nvr.bg.card"
+                    border="1px solid"
+                    borderColor="nvr.border.interactive"
                     borderRadius="xl"
-                    color="gray.800"
+                    color="nvr.text.primary"
                     fontSize="sm"
                     _placeholder={{ color: "gray.400" }}
                     _hover={{ borderColor: "rgba(15, 23, 42, 0.2)" }}
                     _focus={{
-                      borderColor: "blue.500",
-                      bg: "white",
+                      borderColor: "nvr.brand.primary",
+                      bg: "nvr.bg.card",
                       outline: "none",
                       boxShadow: "0 0 0 1px rgba(37, 99, 235, 0.25)",
                     }}
@@ -201,84 +170,34 @@ export const Login = ({ onLoginSuccess }) => {
               </Box>
 
               {/* Campo Contraseña */}
-              <Box>
-                <Text
-                  fontSize="xs"
-                  fontWeight="semibold"
-                  color="gray.700"
-                  mb={2}
-                  letterSpacing="wider"
-                  textTransform="uppercase"
-                >
-                  Contraseña
-                </Text>
-                <Flex position="relative" align="center">
-                  <Box position="absolute" left={4} color="gray.400" zIndex={2}>
-                    <Lock size={18} />
-                  </Box>
-                  <Input
-                    id="password-input"
-                    type={showPassword ? "text" : "password"}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    pl={12}
-                    pr={12}
-                    h="50px"
-                    bg="rgba(255, 255, 255, 0.8)"
-                    border="1px solid rgba(15, 23, 42, 0.12)"
-                    borderRadius="xl"
-                    color="gray.800"
-                    fontSize="sm"
-                    _placeholder={{ color: "gray.400" }}
-                    _hover={{ borderColor: "rgba(15, 23, 42, 0.2)" }}
-                    _focus={{
-                      borderColor: "blue.500",
-                      bg: "white",
-                      outline: "none",
-                      boxShadow: "0 0 0 1px rgba(37, 99, 235, 0.25)",
-                    }}
-                    transition="all 0.2s"
-                    disabled={isLoading}
-                    autoComplete="current-password"
-                  />
-                  <Button
-                    type="button"
-                    position="absolute"
-                    right={2}
-                    variant="ghost"
-                    h="36px"
-                    w="36px"
-                    minW="36px"
-                    p={0}
-                    color="gray.400"
-                    _hover={{ color: "gray.800", bg: "rgba(0, 0, 0, 0.03)" }}
-                    onClick={() => setShowPassword(!showPassword)}
-                    tabIndex="-1"
-                    disabled={isLoading}
-                  >
-                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </Button>
-                </Flex>
-              </Box>
+              <PasswordInput
+                id="password-input"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                label="Contraseña"
+                isLoading={isLoading}
+                autoComplete="current-password"
+              />
 
               {/* Mensaje de Error */}
               {error && (
                 <Flex
                   align="start"
                   p={4}
-                  bg="red.50"
-                  border="1px solid rgba(239, 68, 68, 0.15)"
+                  bg="nvr.brand.dangerBg"
+                  border="1px solid"
+                  borderColor="nvr.brand.dangerBorder"
                   borderRadius="xl"
                   gap={3}
                   animation="modal-content-scale-in 0.3s ease-out forwards"
                 >
-                  <Box color="red.500" mt={0.5}>
+                  <Box color="nvr.brand.dangerIcon" mt={0.5}>
                     <AlertCircle size={16} />
                   </Box>
                   <Text
                     fontSize="xs"
-                    color="red.700"
+                    color="nvr.brand.danger"
                     fontWeight="medium"
                     id="login-error-msg"
                   >
@@ -294,7 +213,7 @@ export const Login = ({ onLoginSuccess }) => {
                 loading={isLoading}
                 loadingText="Autenticando..."
                 h="50px"
-                bg="blue.600"
+                bg="nvr.brand.primaryText"
                 color="white"
                 borderRadius="xl"
                 fontSize="sm"
@@ -316,34 +235,7 @@ export const Login = ({ onLoginSuccess }) => {
           </form>
         </VStack>
       </Box>
-
-      {/* Footer del Login */}
-      <Box
-        position="absolute"
-        bottom={4}
-        left="50%"
-        transform="translateX(-50%)"
-        zIndex={10}
-        px={6}
-        py={2}
-        borderRadius="full"
-        bg="rgba(255, 255, 255, 0.65)"
-        backdropFilter="blur(100px)"
-        boxShadow="0 10px 30px rgba(255, 255, 255, 1), 0 0 20px rgba(255, 255, 255, 1)"
-        border="1px solid rgba(255, 255, 255, 0.7)"
-        whiteSpace="nowrap"
-      >
-        <Text
-          fontSize="10px"
-          color="gray.500"
-          letterSpacing="widest"
-          textTransform="uppercase"
-          fontWeight="medium"
-        >
-          UCAMI 2026 • Area de Tecnología
-        </Text>
-      </Box>
-    </Flex>
+    </ScreenLayout>
   );
 };
 
