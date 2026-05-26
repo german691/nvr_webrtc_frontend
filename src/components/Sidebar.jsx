@@ -106,7 +106,7 @@ const Sidebar = () => {
     setTimeout(() => {
       setIsFfmpegOpen(false);
       setIsFfmpegClosing(false);
-    }, 280); // Ligeramente por debajo de los 300ms de CSS para un desmontado limpio
+    }, 280);
   };
 
   if (isLoading) {

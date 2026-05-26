@@ -1,6 +1,6 @@
 {
   "2": {
-    "A": {
+    "1": {
       "label": "Lado a lado",
       "cols": 2,
       "rows": 1,
@@ -9,15 +9,25 @@
         { "gridColumn": "1", "gridRow": "1", "isPrimary": true },
         { "gridColumn": "2", "gridRow": "1", "isPrimary": true }
       ]
+    },
+    "2": {
+      "label": "Vertical",
+      "cols": 1,
+      "rows": 2,
+      "defaultRatios": {},
+      "cells": [
+        { "gridColumn": "1", "gridRow": "1", "isPrimary": true },
+        { "gridColumn": "1", "gridRow": "2", "isPrimary": true }
+      ]
     }
   },
   "3": {
-    "A": {
-      "label": "Layout A",
+    "1": {
+      "label": "Diseño 1",
       "cols": 2,
       "rows": 2,
       "defaultRatios": {
-        "colRatio": 18
+        "colRatio": 33.33
       },
       "cells": [
         { "gridColumn": "2", "gridRow": "1 / span 2", "isPrimary": true },
@@ -25,12 +35,12 @@
         { "gridColumn": "1", "gridRow": "2", "isPrimary": false }
       ]
     },
-    "B": {
-      "label": "Layout B",
+    "2": {
+      "label": "Diseño 2",
       "cols": 2,
       "rows": 2,
       "defaultRatios": {
-        "rowRatio": 82
+        "rowRatio": 66.66
       },
       "cells": [
         { "gridColumn": "1 / span 2", "gridRow": "1", "isPrimary": true },
@@ -38,8 +48,8 @@
         { "gridColumn": "2", "gridRow": "2", "isPrimary": false }
       ]
     },
-    "C": {
-      "label": "Layout C",
+    "3": {
+      "label": "Diseño 3",
       "cols": 3,
       "rows": 1,
       "defaultRatios": {
@@ -54,12 +64,12 @@
     }
   },
   "4": {
-    "A": {
-      "label": "Layout A",
+    "1": {
+      "label": "Diseño 1",
       "cols": 2,
       "rows": 3,
       "defaultRatios": {
-        "colRatio": 18
+        "colRatio": 33.33
       },
       "cells": [
         { "gridColumn": "2", "gridRow": "1 / span 3", "isPrimary": true },
@@ -68,12 +78,12 @@
         { "gridColumn": "1", "gridRow": "3", "isPrimary": false }
       ]
     },
-    "B": {
-      "label": "Layout B",
+    "2": {
+      "label": "Diseño 2",
       "cols": 3,
       "rows": 2,
       "defaultRatios": {
-        "rowRatio": 82
+        "rowRatio": 66.66
       },
       "cells": [
         { "gridColumn": "1 / span 3", "gridRow": "1", "isPrimary": true },
@@ -82,8 +92,8 @@
         { "gridColumn": "3", "gridRow": "2", "isPrimary": false }
       ]
     },
-    "C": {
-      "label": "Layout C (Defecto)",
+    "3": {
+      "label": "Diseño 3 (Defecto)",
       "cols": 2,
       "rows": 2,
       "defaultRatios": {},
@@ -94,13 +104,13 @@
         { "gridColumn": "2", "gridRow": "2", "isPrimary": false }
       ]
     },
-    "D": {
-      "label": "Layout D",
+    "4": {
+      "label": "Diseño 4",
       "cols": 2,
       "rows": 2,
       "defaultRatios": {
-        "colRatio": 18,
-        "rowRatio": 82
+        "colRatio": 33.33,
+        "rowRatio": 66.66
       },
       "cells": [
         { "gridColumn": "2", "gridRow": "1", "isPrimary": true },
@@ -111,30 +121,34 @@
     }
   },
   "5": {
-    "A": {
-      "label": "Layout A",
+    "1": {
+      "label": "Diseño 1",
       "cols": 3,
       "rows": 3,
       "defaultRatios": {
-        "colRatio": 18,
-        "colRatio2": 59,
-        "rowRatio": 41,
-        "rowRatio2": 82
+        "colRatio": 33.33,
+        "colRatio2": 66.66,
+        "rowRatio": 33.33,
+        "rowRatio2": 66.66
       },
       "cells": [
-        { "gridColumn": "2 / span 2", "gridRow": "1 / span 2", "isPrimary": true },
+        {
+          "gridColumn": "2 / span 2",
+          "gridRow": "1 / span 2",
+          "isPrimary": true
+        },
         { "gridColumn": "1", "gridRow": "1", "isPrimary": false },
         { "gridColumn": "1", "gridRow": "2", "isPrimary": false },
         { "gridColumn": "1", "gridRow": "3", "isPrimary": false },
         { "gridColumn": "2 / span 2", "gridRow": "3", "isPrimary": false }
       ]
     },
-    "B": {
-      "label": "Layout B",
+    "2": {
+      "label": "Diseño 2",
       "cols": 2,
       "rows": 6,
       "defaultRatios": {
-        "colRatio": 18
+        "colRatio": 33.33
       },
       "cells": [
         { "gridColumn": "2", "gridRow": "1 / span 3", "isPrimary": true },
@@ -146,8 +160,8 @@
     }
   },
   "6": {
-    "A": {
-      "label": "Layout A (Defecto)",
+    "1": {
+      "label": "Diseño 1 (Defecto)",
       "cols": 3,
       "rows": 2,
       "defaultRatios": {
@@ -164,12 +178,12 @@
         { "gridColumn": "3", "gridRow": "2", "isPrimary": false }
       ]
     },
-    "B": {
-      "label": "Layout B",
+    "2": {
+      "label": "Diseño 2",
       "cols": 2,
       "rows": 4,
       "defaultRatios": {
-        "colRatio": 18
+        "colRatio": 30
       },
       "cells": [
         { "gridColumn": "2", "gridRow": "1 / span 2", "isPrimary": true },
@@ -180,18 +194,22 @@
         { "gridColumn": "1", "gridRow": "4", "isPrimary": false }
       ]
     },
-    "C": {
-      "label": "Layout C",
+    "3": {
+      "label": "Diseño 3",
       "cols": 3,
       "rows": 3,
       "defaultRatios": {
-        "colRatio": 18,
-        "colRatio2": 59,
-        "rowRatio": 41,
-        "rowRatio2": 82
+        "colRatio": 33.33,
+        "colRatio2": 66.66,
+        "rowRatio": 33.33,
+        "rowRatio2": 66.66
       },
       "cells": [
-        { "gridColumn": "2 / span 2", "gridRow": "1 / span 2", "isPrimary": true },
+        {
+          "gridColumn": "2 / span 2",
+          "gridRow": "1 / span 2",
+          "isPrimary": true
+        },
         { "gridColumn": "1", "gridRow": "1", "isPrimary": false },
         { "gridColumn": "1", "gridRow": "2", "isPrimary": false },
         { "gridColumn": "1", "gridRow": "3", "isPrimary": false },
@@ -201,16 +219,20 @@
     }
   },
   "7": {
-    "A": {
-      "label": "Layout A",
+    "1": {
+      "label": "Diseño 1",
       "cols": 4,
       "rows": 3,
       "defaultRatios": {
-        "rowRatio": 41,
-        "rowRatio2": 82
+        "rowRatio": 33,
+        "rowRatio2": 66
       },
       "cells": [
-        { "gridColumn": "3 / span 2", "gridRow": "1 / span 2", "isPrimary": true },
+        {
+          "gridColumn": "3 / span 2",
+          "gridRow": "1 / span 2",
+          "isPrimary": true
+        },
         { "gridColumn": "1", "gridRow": "1", "isPrimary": false },
         { "gridColumn": "2", "gridRow": "1", "isPrimary": false },
         { "gridColumn": "1", "gridRow": "2", "isPrimary": false },
@@ -219,13 +241,17 @@
         { "gridColumn": "3 / span 2", "gridRow": "3", "isPrimary": false }
       ]
     },
-    "B": {
-      "label": "Layout B",
+    "2": {
+      "label": "Diseño 2",
       "cols": 4,
       "rows": 3,
       "defaultRatios": {},
       "cells": [
-        { "gridColumn": "3 / span 2", "gridRow": "1 / span 3", "isPrimary": true },
+        {
+          "gridColumn": "3 / span 2",
+          "gridRow": "1 / span 3",
+          "isPrimary": true
+        },
         { "gridColumn": "1", "gridRow": "1", "isPrimary": false },
         { "gridColumn": "2", "gridRow": "1", "isPrimary": false },
         { "gridColumn": "1", "gridRow": "2", "isPrimary": false },
@@ -236,8 +262,8 @@
     }
   },
   "8": {
-    "A": {
-      "label": "Layout A (Defecto)",
+    "1": {
+      "label": "Diseño 1 (Defecto)",
       "cols": 4,
       "rows": 2,
       "defaultRatios": {},
@@ -252,16 +278,20 @@
         { "gridColumn": "4", "gridRow": "2", "isPrimary": false }
       ]
     },
-    "B": {
-      "label": "Layout B",
+    "2": {
+      "label": "Diseño 2",
       "cols": 4,
       "rows": 3,
       "defaultRatios": {
-        "rowRatio": 41,
-        "rowRatio2": 82
+        "rowRatio": 33.5,
+        "rowRatio2": 66.5
       },
       "cells": [
-        { "gridColumn": "3 / span 2", "gridRow": "1 / span 2", "isPrimary": true },
+        {
+          "gridColumn": "3 / span 2",
+          "gridRow": "1 / span 2",
+          "isPrimary": true
+        },
         { "gridColumn": "1", "gridRow": "1", "isPrimary": false },
         { "gridColumn": "2", "gridRow": "1", "isPrimary": false },
         { "gridColumn": "1", "gridRow": "2", "isPrimary": false },
@@ -271,14 +301,22 @@
         { "gridColumn": "3 / span 2", "gridRow": "3", "isPrimary": false }
       ]
     },
-    "C": {
-      "label": "Layout C",
+    "3": {
+      "label": "Diseño 3",
       "cols": 4,
       "rows": 6,
       "defaultRatios": {},
       "cells": [
-        { "gridColumn": "3 / span 2", "gridRow": "1 / span 3", "isPrimary": true },
-        { "gridColumn": "3 / span 2", "gridRow": "4 / span 3", "isPrimary": true },
+        {
+          "gridColumn": "3 / span 2",
+          "gridRow": "1 / span 3",
+          "isPrimary": true
+        },
+        {
+          "gridColumn": "3 / span 2",
+          "gridRow": "4 / span 3",
+          "isPrimary": true
+        },
         { "gridColumn": "1", "gridRow": "1 / span 2", "isPrimary": false },
         { "gridColumn": "2", "gridRow": "1 / span 2", "isPrimary": false },
         { "gridColumn": "1", "gridRow": "3 / span 2", "isPrimary": false },

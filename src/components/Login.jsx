@@ -17,7 +17,6 @@ import PasswordInput from "./ui/PasswordInput";
 
 /**
  * Vista de Inicio de Sesión de la aplicación.
- * Compone la presentación usando ScreenLayout y PasswordInput.
  */
 export const Login = ({ onLoginSuccess }) => {
   const [username, setUsername] = useState("");
@@ -60,7 +59,7 @@ export const Login = ({ onLoginSuccess }) => {
 
   return (
     <ScreenLayout>
-      {/* Contenedor principal de Login con estética premium frosted-glass claro */}
+      {/* Contenedor principal de Login */}
       <Box
         position="relative"
         zIndex={10}
@@ -90,7 +89,11 @@ export const Login = ({ onLoginSuccess }) => {
                 maxH="100px"
                 objectFit="contain"
                 fallback={
-                  <Heading size="xl" color="nvr.text.primary" letterSpacing="wider">
+                  <Heading
+                    size="xl"
+                    color="nvr.text.primary"
+                    letterSpacing="wider"
+                  >
                     UCAMI
                   </Heading>
                 }
@@ -128,7 +131,12 @@ export const Login = ({ onLoginSuccess }) => {
                   Usuario
                 </Text>
                 <Flex position="relative" align="center">
-                  <Box position="absolute" left={4} color="nvr.text.secondary" zIndex={2}>
+                  <Box
+                    position="absolute"
+                    left={4}
+                    color="nvr.text.secondary"
+                    zIndex={2}
+                  >
                     <User size={18} />
                   </Box>
                   <Input

@@ -1,59 +1,38 @@
 import { Box } from "@chakra-ui/react";
 import gridPresets from "./gridPresets.json";
 
-/**
- * Obtiene la lista de opciones de diseño válidas para una cantidad específica de cámaras.
- * Lee dinámicamente de gridPresets.json.
- * 
- * @param {number} num - Cantidad de cámaras activas.
- * @returns {Array<{key: string, label: string}>} Lista de opciones.
- */
-export const getLayoutOptions = (num) => {
-  const layouts = gridPresets[String(num)];
+export const getLayoutOptions = (num, customPresets) => {
+  const presets = customPresets && Object.keys(customPresets).length > 0 ? customPresets : gridPresets;
+  const layouts = presets[String(num)];
   if (!layouts) return [];
   return Object.keys(layouts).map((key) => ({
-    key,
+    key: Number(key),
     label: layouts[key].label || `Diseño ${key}`,
   }));
 };
 
-/**
- * Retorna las dimensiones de rejilla (columnas y filas) para una cantidad y diseño.
- * Si no está definido en el preset, calcula una rejilla uniforme.
- * 
- * @param {number} num - Cantidad de cámaras activas.
- * @param {string} layout - Identificador del diseño.
- * @returns {{cols: number, rows: number}} Dimensiones de la rejilla.
- */
-export const getGridDimensions = (num, layout) => {
-  const preset = gridPresets[String(num)]?.[layout];
+export const getGridDimensions = (num, layout, customPresets) => {
+  const presets = customPresets && Object.keys(customPresets).length > 0 ? customPresets : gridPresets;
+  const preset = presets[String(num)]?.[String(layout)];
   if (preset) {
     return { cols: preset.cols, rows: preset.rows };
   }
-  // Fallback matemático para rejilla uniforme uniforme
   if (num <= 1) return { cols: 1, rows: 1 };
   const cols = Math.ceil(Math.sqrt(num));
   const rows = Math.ceil(num / cols);
   return { cols, rows };
 };
 
-/**
- * Obtiene los ratios iniciales de redimensionamiento de fila/columna por defecto.
- * 
- * @param {number} num - Cantidad de cámaras activas.
- * @param {string} layout - Identificador del diseño.
- * @returns {{colRatio: number, colRatio2: number, rowRatio: number, rowRatio2: number}} Ratios iniciales.
- */
-export const getDefaultRatios = (num, layout) => {
-  const { cols: activeCols, rows: activeRows } = getGridDimensions(num, layout);
+export const getDefaultRatios = (num, layout, customPresets) => {
+  const { cols: activeCols, rows: activeRows } = getGridDimensions(num, layout, customPresets);
 
-  // Valores equitativos por defecto según cantidad de columnas y filas
   let defCol = activeCols === 3 ? 33.33 : 50;
   let defCol2 = 66.66;
   let defRow = activeRows === 3 ? 33.33 : 50;
   let defRow2 = 66.66;
 
-  const preset = gridPresets[String(num)]?.[layout];
+  const presets = customPresets && Object.keys(customPresets).length > 0 ? customPresets : gridPresets;
+  const preset = presets[String(num)]?.[String(layout)];
   if (preset && preset.defaultRatios) {
     const r = preset.defaultRatios;
     return {
@@ -72,20 +51,13 @@ export const getDefaultRatios = (num, layout) => {
   };
 };
 
-/**
- * Retorna las coordenadas de área CSS grid ({ gridColumn, gridRow }) para un elemento visual.
- * 
- * @param {number} visualIdx - Posición del elemento en la lista ordenada.
- * @param {number} num - Cantidad de cámaras activas.
- * @param {string} layout - Identificador del diseño.
- * @returns {{gridColumn: string, gridRow: string}} Coordenadas CSS grid.
- */
-export const getGridAreaProps = (visualIdx, num, layout) => {
+export const getGridAreaProps = (visualIdx, num, layout, customPresets) => {
   if (num <= 1) {
     return { gridColumn: "1", gridRow: "1" };
   }
 
-  const preset = gridPresets[String(num)]?.[layout];
+  const presets = customPresets && Object.keys(customPresets).length > 0 ? customPresets : gridPresets;
+  const preset = presets[String(num)]?.[String(layout)];
   if (preset && preset.cells && preset.cells[visualIdx]) {
     const cell = preset.cells[visualIdx];
     return {
@@ -94,8 +66,7 @@ export const getGridAreaProps = (visualIdx, num, layout) => {
     };
   }
 
-  // Fallback: calcular coordenadas para cuadrícula matemática uniforme
-  const { cols } = getGridDimensions(num, layout);
+  const { cols } = getGridDimensions(num, layout, customPresets);
   const col = (visualIdx % cols) + 1;
   const row = Math.floor(visualIdx / cols) + 1;
   return {
@@ -104,15 +75,9 @@ export const getGridAreaProps = (visualIdx, num, layout) => {
   };
 };
 
-/**
- * Genera el diagrama miniatura interactivo del diseño seleccionado en base a los metadatos.
- * 
- * @param {number} num - Cantidad de cámaras activas.
- * @param {string} layout - Identificador del diseño.
- * @returns {React.ReactElement} Componente visual.
- */
-export const renderLayoutShape = (num, layout) => {
-  const preset = gridPresets[String(num)]?.[layout];
+export const renderLayoutShape = (num, layout, customPresets) => {
+  const presets = customPresets && Object.keys(customPresets).length > 0 ? customPresets : gridPresets;
+  const preset = presets[String(num)]?.[String(layout)];
 
   let cells;
   let dCols;
@@ -127,8 +92,7 @@ export const renderLayoutShape = (num, layout) => {
       bg: c.isPrimary ? "blue.500" : "gray.300",
     }));
   } else {
-    // Fallback dinámico para rejilla uniforme uniforme
-    const dims = getGridDimensions(num, layout);
+    const dims = getGridDimensions(num, layout, customPresets);
     dCols = dims.cols;
     dRows = dims.rows;
     cells = Array.from({ length: num }, (_, idx) => {
@@ -171,4 +135,39 @@ export const renderLayoutShape = (num, layout) => {
       ))}
     </Box>
   );
+};
+
+export const getGridTemplateStyles = (count, cols, rows, colRatio, colRatio2, rowRatio, rowRatio2) => {
+  if (count <= 1) {
+    return {
+      display: "grid",
+      gridTemplateColumns: "100%",
+      gridTemplateRows: "100%",
+    };
+  }
+
+  let gridTemplateColumns;
+  let gridTemplateRows;
+
+  if (cols === 2) {
+    gridTemplateColumns = `${colRatio}% ${100 - colRatio}%`;
+  } else if (cols === 3) {
+    gridTemplateColumns = `${colRatio}% ${colRatio2 - colRatio}% ${100 - colRatio2}%`;
+  } else {
+    gridTemplateColumns = `repeat(${cols}, 1fr)`;
+  }
+
+  if (rows === 2) {
+    gridTemplateRows = `${rowRatio}% ${100 - rowRatio}%`;
+  } else if (rows === 3) {
+    gridTemplateRows = `${rowRatio}% ${rowRatio2 - rowRatio}% ${100 - rowRatio2}%`;
+  } else {
+    gridTemplateRows = `repeat(${rows}, 1fr)`;
+  }
+
+  return {
+    display: "grid",
+    gridTemplateColumns,
+    gridTemplateRows,
+  };
 };

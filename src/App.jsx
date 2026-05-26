@@ -6,6 +6,7 @@ import Sidebar from "./components/Sidebar";
 import VideoWall from "./components/VideoWall";
 import Login from "./components/Login";
 import ChangePassword from "./components/ChangePassword";
+import VideoWallEditor from "./components/VideoWallEditor";
 
 function App() {
   const dispatch = useDispatch();
@@ -15,6 +16,7 @@ function App() {
   const [needsPasswordChange, setNeedsPasswordChange] = useState(
     () => localStorage.getItem("nvr_needs_password_change") === "true"
   );
+  const [currentView, setCurrentView] = useState("videowall");
 
   useEffect(() => {
     if (isAuthenticated && !needsPasswordChange) {
@@ -49,6 +51,10 @@ function App() {
     return <ChangePassword onPasswordChanged={handlePasswordChanged} />;
   }
 
+  if (currentView === "layout-editor") {
+    return <VideoWallEditor onClose={() => setCurrentView("videowall")} />;
+  }
+
   return (
     <Flex
       h="100vh"
@@ -79,7 +85,7 @@ function App() {
         position="relative"
         overflow="hidden"
       >
-        <VideoWall />
+        <VideoWall onOpenLayoutEditor={() => setCurrentView("layout-editor")} />
       </Box>
     </Flex>
   );

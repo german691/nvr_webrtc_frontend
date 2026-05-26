@@ -12,10 +12,9 @@ axios.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error);
-  }
+  },
 );
 
-// Interceptor de respuesta para manejar el código de error 401 (no autorizado)
 axios.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -27,7 +26,7 @@ axios.interceptors.response.use(
       }
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 export const cameraApi = {
@@ -122,13 +121,37 @@ export const cameraApi = {
   },
 
   killFfmpegProcess: async (pid) => {
-    const response = await axios.post(`${API_BASE_URL}/cameras/debug/ffmpeg/kill`, { pid });
+    const response = await axios.post(
+      `${API_BASE_URL}/cameras/debug/ffmpeg/kill`,
+      { pid },
+    );
     return response.data;
   },
 
   killAllFfmpegProcesses: async () => {
-    const response = await axios.post(`${API_BASE_URL}/cameras/debug/ffmpeg/kill-all`);
+    const response = await axios.post(
+      `${API_BASE_URL}/cameras/debug/ffmpeg/kill-all`,
+    );
+    return response.data;
+  },
+
+  getLayouts: async () => {
+    const response = await axios.get(`${API_BASE_URL}/cameras/layouts`);
+    return response.data;
+  },
+
+  createLayout: async (payload) => {
+    const response = await axios.post(
+      `${API_BASE_URL}/cameras/layouts`,
+      payload,
+    );
+    return response.data;
+  },
+
+  deleteLayout: async (id) => {
+    const response = await axios.delete(
+      `${API_BASE_URL}/cameras/layouts/${id}`,
+    );
     return response.data;
   },
 };
-

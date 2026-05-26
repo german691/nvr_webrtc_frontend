@@ -1,4 +1,12 @@
-import { Box, Flex, Text, Button, VStack, Heading, Image } from "@chakra-ui/react";
+import {
+  Box,
+  Flex,
+  Text,
+  Button,
+  VStack,
+  Heading,
+  Image,
+} from "@chakra-ui/react";
 import { AlertCircle, CheckCircle } from "lucide-react";
 import logoImg from "../assets/logof.png";
 import ScreenLayout from "./ui/ScreenLayout";
@@ -7,7 +15,6 @@ import useChangePassword from "../hooks/useChangePassword";
 
 /**
  * Vista de Cambio de Contraseña de Seguridad.
- * Utiliza primitivas UI y un Hook de negocio de comportamiento aislado.
  */
 export const ChangePassword = ({ onPasswordChanged }) => {
   const {
@@ -42,14 +49,23 @@ export const ChangePassword = ({ onPasswordChanged }) => {
         <VStack spaceY={6} align="stretch">
           {/* Logo y Encabezado */}
           <VStack spaceY={3} align="center" mb={1}>
-            <Box p={1} display="flex" alignItems="center" justifyContent="center">
+            <Box
+              p={1}
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+            >
               <Image
                 src={logoImg}
                 alt="UCAMI Logo"
                 maxH="80px"
                 objectFit="contain"
                 fallback={
-                  <Heading size="xl" color="nvr.text.primary" letterSpacing="wider">
+                  <Heading
+                    size="xl"
+                    color="nvr.text.primary"
+                    letterSpacing="wider"
+                  >
                     UCAMI
                   </Heading>
                 }
@@ -65,8 +81,14 @@ export const ChangePassword = ({ onPasswordChanged }) => {
               >
                 Actualización de Seguridad
               </Heading>
-              <Text fontSize="xs" color="nvr.text.secondary" textAlign="center" px={2}>
-                Por política de seguridad de la UCAMI, es obligatorio cambiar la contraseña por defecto en su primer inicio de sesión.
+              <Text
+                fontSize="xs"
+                color="nvr.text.secondary"
+                textAlign="center"
+                px={2}
+              >
+                Por política de seguridad de la UCAMI, es obligatorio cambiar la
+                contraseña por defecto en su primer inicio de sesión.
               </Text>
             </VStack>
           </VStack>
@@ -79,14 +101,23 @@ export const ChangePassword = ({ onPasswordChanged }) => {
               py={6}
               gap={4}
             >
-              <Box color="nvr.brand.success" bg="nvr.brand.successBg" p={4} borderRadius="full">
+              <Box
+                color="nvr.brand.success"
+                bg="nvr.brand.successBg"
+                p={4}
+                borderRadius="full"
+              >
                 <CheckCircle size={48} />
               </Box>
               <VStack spaceY={1} align="center">
                 <Text fontSize="md" fontWeight="bold" color="nvr.brand.success">
                   ¡Contraseña Actualizada!
                 </Text>
-                <Text fontSize="xs" color="nvr.text.secondary" textAlign="center">
+                <Text
+                  fontSize="xs"
+                  color="nvr.text.secondary"
+                  textAlign="center"
+                >
                   Redireccionando al panel de control...
                 </Text>
               </VStack>
@@ -132,7 +163,11 @@ export const ChangePassword = ({ onPasswordChanged }) => {
                     <Box color="nvr.brand.dangerIcon" mt={0.5}>
                       <AlertCircle size={16} />
                     </Box>
-                    <Text fontSize="xs" color="nvr.brand.danger" fontWeight="medium">
+                    <Text
+                      fontSize="xs"
+                      color="nvr.brand.danger"
+                      fontWeight="medium"
+                    >
                       {error}
                     </Text>
                   </Flex>
