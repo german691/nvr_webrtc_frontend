@@ -15,10 +15,20 @@ import {
 } from "@chakra-ui/react";
 import { useSelector, useDispatch } from "react-redux";
 import { toggleStream } from "../store/slices/cameraSlice";
-import { ChevronLeft, Video, Activity, LogOut, Users } from "lucide-react";
+import {
+  ChevronLeft,
+  Video,
+  Activity,
+  LogOut,
+  Users,
+  Server,
+  Loader2,
+  AlertTriangle,
+} from "lucide-react";
 import { BeatLoader } from "react-spinners";
 import CameraControlCard from "./CameraControlCard";
 import UserManagementModal from "./UserManagementModal";
+import { NodeManagementModal } from "./NodeManagementModal";
 import { FfmpegDebugModal } from "./FfmpegDebugModal";
 import logoImg from "../assets/logoh.png";
 import { Tooltip } from "./ui/tooltip";
@@ -34,6 +44,7 @@ const Sidebar = () => {
   const { list, isLoading, error } = useSelector((state) => state.cameras);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isUserManagementOpen, setIsUserManagementOpen] = useState(false);
+  const [isNodeManagementOpen, setIsNodeManagementOpen] = useState(false);
   const userRole = localStorage.getItem("nvr_role");
   const [isDebugMode, setIsDebugMode] = useState(false);
   const [togglingDevs, setTogglingDevs] = useState({});
@@ -142,7 +153,7 @@ const Sidebar = () => {
 
   return (
     <Box
-      w={isCollapsed ? "60px" : "270px"}
+      w={isCollapsed ? "60px" : "320px"}
       transition="width 0.35s cubic-bezier(0.4, 0, 0.2, 1)"
       h="100%"
       bg="nvr.bg.sidebar"
@@ -204,6 +215,7 @@ const Sidebar = () => {
             </Heading>
             {isDebugMode && (
               <Badge
+                size="xs"
                 colorPalette="blue"
                 variant="solid"
                 size="2xs"
@@ -277,6 +289,64 @@ const Sidebar = () => {
         >
           <VStack gap={2} w="full" align="center">
             {list.map((cam) => {
+              if (cam.loading) {
+                return (
+                  <Tooltip
+                    key={cam.dev}
+                    content={cam.name}
+                    positioning={{ placement: "right" }}
+                    showArrow
+                  >
+                    <Box
+                      p={2.5}
+                      borderRadius="full"
+                      bg="nvr.bg.muted"
+                      borderWidth="2px"
+                      borderColor="nvr.border.default"
+                      color="nvr.brand.primary"
+                      display="flex"
+                      alignItems="center"
+                      justifyContent="center"
+                      minW="38px"
+                      minH="38px"
+                    >
+                      <Loader2
+                        className="animate-spin"
+                        size={18}
+                        color="#2563eb"
+                      />
+                    </Box>
+                  </Tooltip>
+                );
+              }
+
+              if (cam.offline) {
+                return (
+                  <Tooltip
+                    key={cam.dev}
+                    content={cam.name}
+                    positioning={{ placement: "right" }}
+                    showArrow
+                  >
+                    <Box
+                      p={2.5}
+                      borderRadius="full"
+                      bg="nvr.bg.muted"
+                      borderWidth="2px"
+                      borderColor="red.500"
+                      color="red.500"
+                      display="flex"
+                      alignItems="center"
+                      justifyContent="center"
+                      minW="38px"
+                      minH="38px"
+                    >
+                      <AlertTriangle size={18} />
+                    </Box>
+                  </Tooltip>
+                );
+              }
+
               const isStreaming = cam.streaming;
               const isToggling = !!togglingDevs[cam.dev];
               const titleText = `${formatDeviceName(cam.dev)} - ${
@@ -390,21 +460,38 @@ const Sidebar = () => {
               </IconButton>
             </Tooltip>
             {userRole === "admin" && (
-              <Tooltip
-                content="Gestión de Usuarios"
-                positioning={{ placement: "right" }}
-                showArrow
-              >
-                <IconButton
-                  size="sm"
-                  variant="surface"
-                  colorPalette="blue"
-                  aria-label="Gestión de Usuarios"
-                  onClick={() => setIsUserManagementOpen(true)}
+              <>
+                <Tooltip
+                  content="Gestión de Usuarios"
+                  positioning={{ placement: "right" }}
+                  showArrow
                 >
-                  <Users size={18} />
-                </IconButton>
-              </Tooltip>
+                  <IconButton
+                    size="sm"
+                    variant="surface"
+                    colorPalette="blue"
+                    aria-label="Gestión de Usuarios"
+                    onClick={() => setIsUserManagementOpen(true)}
+                  >
+                    <Users size={18} />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip
+                  content="Gestión de Nodos Edge"
+                  positioning={{ placement: "right" }}
+                  showArrow
+                >
+                  <IconButton
+                    size="sm"
+                    variant="surface"
+                    colorPalette="teal"
+                    aria-label="Gestión de Nodos Edge"
+                    onClick={() => setIsNodeManagementOpen(true)}
+                  >
+                    <Server size={18} />
+                  </IconButton>
+                </Tooltip>
+              </>
             )}
             <Tooltip
               content="Cerrar sesión"
@@ -439,17 +526,30 @@ const Sidebar = () => {
               <Text fontSize="xs">Estado FFmpeg</Text>
             </Button>
             {userRole === "admin" && (
-              <Tooltip content="Gestión de Usuarios" showArrow>
-                <IconButton
-                  size="sm"
-                  variant="surface"
-                  colorPalette="blue"
-                  aria-label="Gestión de Usuarios"
-                  onClick={() => setIsUserManagementOpen(true)}
-                >
-                  <Users size={16} />
-                </IconButton>
-              </Tooltip>
+              <>
+                <Tooltip content="Gestión de Usuarios" showArrow>
+                  <IconButton
+                    size="sm"
+                    variant="surface"
+                    colorPalette="blue"
+                    aria-label="Gestión de Usuarios"
+                    onClick={() => setIsUserManagementOpen(true)}
+                  >
+                    <Users size={16} />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip content="Gestión de Nodos Edge" showArrow>
+                  <IconButton
+                    size="sm"
+                    variant="surface"
+                    colorPalette="teal"
+                    aria-label="Gestión de Nodos Edge"
+                    onClick={() => setIsNodeManagementOpen(true)}
+                  >
+                    <Server size={16} />
+                  </IconButton>
+                </Tooltip>
+              </>
             )}
             <Tooltip content="Cerrar sesión" showArrow>
               <IconButton
@@ -476,6 +576,10 @@ const Sidebar = () => {
         <UserManagementModal
           isOpen={isUserManagementOpen}
           onClose={() => setIsUserManagementOpen(false)}
+        />
+        <NodeManagementModal
+          isOpen={isNodeManagementOpen}
+          onClose={() => setIsNodeManagementOpen(false)}
         />
       </Portal>
     </Box>

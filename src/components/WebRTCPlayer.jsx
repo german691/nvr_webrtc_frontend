@@ -10,15 +10,17 @@ import {
   Minimize,
   Focus,
   Settings,
+  Gamepad2,
 } from "lucide-react";
-import { useDispatch } from "react-redux";
-import { toggleStream } from "../store/slices/cameraSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { toggleStream, togglePtzOverlay, setPtzOverlay } from "../store/slices/cameraSlice";
 import { StreamSettings } from "./StreamSettings.jsx";
 import { UvcControlPanel } from "./UvcControlPanel.jsx";
 import PlayerButton from "./ui/PlayerButton";
 import { useVideoZoom } from "../hooks/useVideoZoom";
 import { useLocalRecorder } from "../hooks/useLocalRecorder";
 import { getSortedResolutions, getSortedFps } from "../utils/camera.js";
+import { PtzJoystick } from "./PtzJoystick.jsx";
 
 /**
  * Componente Reproductor WebRTC en tiempo real.
@@ -27,10 +29,13 @@ import { getSortedResolutions, getSortedFps } from "../utils/camera.js";
  */
 export const WebRTCPlayer = ({ url, camera }) => {
   const dispatch = useDispatch();
+  const activePtzOverlays = useSelector((state) => state.cameras.activePtzOverlays);
+  const isPtzOverlayOpen = !!(camera?.dev && activePtzOverlays[camera.dev]);
   const containerRef = useRef(null);
   const videoRef = useRef(null);
   const pcRef = useRef(null);
   const controlsTimeoutRef = useRef(null);
+  const wasVideowallFullscreenRef = useRef(false);
 
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showControls, setShowControls] = useState(false);
@@ -191,7 +196,7 @@ export const WebRTCPlayer = ({ url, camera }) => {
   // --- FULLSCREEN EVENT LISTENER & AUTO-HIDE CONTROLS ---
   useEffect(() => {
     const handleFullscreenChange = () => {
-      const isFS = !!document.fullscreenElement;
+      const isFS = document.fullscreenElement === containerRef.current;
       setIsFullscreen(isFS);
 
       if (isFS) {
@@ -269,13 +274,38 @@ export const WebRTCPlayer = ({ url, camera }) => {
 
   // --- FULLSCREEN ---
   const toggleFullScreen = async () => {
-    if (!document.fullscreenElement) {
+    const videowall = document.getElementById("nvr-videowall");
+    const isThisElementFullscreen = document.fullscreenElement === containerRef.current;
+
+    if (!isThisElementFullscreen) {
+      // Registrar si el videowall estaba en pantalla completa justo antes de maximizar esta cámara
+      if (document.fullscreenElement && videowall && document.fullscreenElement === videowall) {
+        wasVideowallFullscreenRef.current = true;
+      } else {
+        wasVideowallFullscreenRef.current = false;
+      }
+
       if (containerRef.current?.requestFullscreen) {
         await containerRef.current.requestFullscreen();
       }
     } else {
-      if (document.exitFullscreen) {
-        await document.exitFullscreen();
+      if (wasVideowallFullscreenRef.current && videowall) {
+        // Primero, salimos de pantalla completa en la cámara para limpiar sus estilos CSS nativos :fullscreen
+        if (document.exitFullscreen) {
+          await document.exitFullscreen();
+        }
+        // Solicitamos pantalla completa en el videowall en el siguiente tick del event loop (80ms)
+        setTimeout(() => {
+          videowall.requestFullscreen().catch((err) => {
+            console.error("Error al restaurar pantalla completa del videowall:", err);
+          });
+        }, 80);
+        wasVideowallFullscreenRef.current = false;
+      } else {
+        // Salir de pantalla completa por completo
+        if (document.exitFullscreen) {
+          await document.exitFullscreen();
+        }
       }
     }
   };
@@ -345,6 +375,14 @@ export const WebRTCPlayer = ({ url, camera }) => {
         />
       )}
 
+      {isPtzOverlayOpen && camera && (
+        <PtzJoystick
+          cameraDev={camera.dev}
+          isFloating={true}
+          onClose={() => dispatch(setPtzOverlay({ dev: camera.dev, open: false }))}
+        />
+      )}
+
       <HStack
         position="absolute"
         bottom={3}
@@ -379,6 +417,7 @@ export const WebRTCPlayer = ({ url, camera }) => {
       >
         {camera && (
           <UvcControlPanel
+            key={`${camera.dev}-${isFullscreen}`}
             cameraDev={camera.dev}
             size="xs"
             variant="ghost"
@@ -386,11 +425,26 @@ export const WebRTCPlayer = ({ url, camera }) => {
               _hover: { bg: "blackAlpha.100" }
             }}
             onOpenChange={setIsUvcSettingsOpen}
+            portalContainer={isFullscreen ? containerRef : undefined}
           />
         )}
 
         {camera && (
+          <PlayerButton
+            tooltip={isPtzOverlayOpen ? "Ocultar Joystick PTZ" : "Mostrar Joystick PTZ (UVC)"}
+            ariaLabel="Joystick PTZ"
+            onClick={() => dispatch(togglePtzOverlay(camera.dev))}
+            color={isPtzOverlayOpen ? "blue.600" : "gray.700"}
+            bg={isPtzOverlayOpen ? "rgba(37, 99, 235, 0.1)" : "transparent"}
+            _hover={{ bg: "blackAlpha.100" }}
+          >
+            <Gamepad2 size={14} />
+          </PlayerButton>
+        )}
+
+        {camera && (
           <Popover.Root
+            key={`stream-settings-${isFullscreen}`}
             open={isStreamSettingsOpen}
             onOpenChange={(details) => setIsStreamSettingsOpen(details.open)}
             portalled={true}
@@ -404,7 +458,7 @@ export const WebRTCPlayer = ({ url, camera }) => {
                 <Settings size={14} />
               </Popover.Trigger>
             </PlayerButton>
-            <Portal>
+            <Portal container={isFullscreen ? containerRef : undefined}>
               <Popover.Positioner zIndex={1600}>
                 <Popover.Content
                   bg="white"

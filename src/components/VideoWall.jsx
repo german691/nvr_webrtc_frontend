@@ -113,6 +113,7 @@ export const VideoWall = ({ onOpenLayoutEditor }) => {
 
   return (
     <Box
+      id="nvr-videowall"
       ref={containerRef}
       h="100%"
       w="100%"
@@ -136,7 +137,12 @@ export const VideoWall = ({ onOpenLayoutEditor }) => {
         let visualIdx = orderedCameras.findIndex((c) => c.dev === cam.dev);
         if (visualIdx === -1) visualIdx = 0;
 
-        const areaProps = getGridAreaProps(visualIdx, count, currentLayout, presets);
+        const areaProps = getGridAreaProps(
+          visualIdx,
+          count,
+          currentLayout,
+          presets,
+        );
 
         const gridColumnStr = areaProps.gridColumn || "1";
         const colParts = gridColumnStr.split("/");
@@ -156,10 +162,12 @@ export const VideoWall = ({ onOpenLayoutEditor }) => {
         }
         const rowEnd = rowStart + rowSpan - 1;
 
-        const showRightHandle = (colEnd === 1 && cols > 1) || (colEnd === 2 && cols > 2);
+        const showRightHandle =
+          (colEnd === 1 && cols > 1) || (colEnd === 2 && cols > 2);
         const rightHandleIdx = colEnd;
 
-        const showBottomHandle = (rowEnd === 1 && rows > 1) || (rowEnd === 2 && rows > 2);
+        const showBottomHandle =
+          (rowEnd === 1 && rows > 1) || (rowEnd === 2 && rows > 2);
         const bottomHandleIdx = rowEnd;
 
         return (
@@ -211,7 +219,7 @@ export const VideoWall = ({ onOpenLayoutEditor }) => {
                   </Text>
                   {cam.active_settings && (
                     <Text
-                      fontSize="3xs"
+                      fontSize="2xs"
                       color="gray.300"
                       textTransform="uppercase"
                       fontWeight="medium"

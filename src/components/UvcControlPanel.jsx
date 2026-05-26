@@ -24,6 +24,7 @@ export const UvcControlPanel = ({
   variant = "outline",
   buttonProps = {},
   onOpenChange,
+  portalContainer,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [hwControls, setHwControls] = useState([]);
@@ -40,26 +41,21 @@ export const UvcControlPanel = ({
 
   const handleOpenChange = async (details) => {
     if (details.open) {
+      setIsOpen(true);
+      if (onOpenChange) {
+        onOpenChange(true);
+      }
       if (hwControls.length === 0) {
         setIsLoadingControls(true);
         try {
           const response = await cameraApi.getControls(cameraDev);
-          if (response.status === "success") {
+          if (response.status === "success" && response.controls) {
             setHwControls(response.controls);
-            setIsOpen(true);
-            if (onOpenChange) {
-              onOpenChange(true);
-            }
           }
         } catch (error) {
           console.error(error);
         } finally {
           setIsLoadingControls(false);
-        }
-      } else {
-        setIsOpen(true);
-        if (onOpenChange) {
-          onOpenChange(true);
         }
       }
     } else {
@@ -190,7 +186,7 @@ export const UvcControlPanel = ({
           </Popover.Trigger>
         </span>
       </Tooltip>
-      <Portal>
+      <Portal container={portalContainer}>
         <Popover.Positioner zIndex={1600}>
           <Popover.Content
             key={isLoadingControls ? "loading" : "loaded"}

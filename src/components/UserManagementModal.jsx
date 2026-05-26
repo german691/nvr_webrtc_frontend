@@ -717,7 +717,7 @@ export const UserManagementModal = ({ isOpen, onClose }) => {
                               <Badge
                                 colorPalette="gray"
                                 variant="subtle"
-                                fontSize="3xs"
+                                fontSize="2xs"
                                 borderRadius="md"
                                 px={1.5}
                               >
@@ -729,7 +729,7 @@ export const UserManagementModal = ({ isOpen, onClose }) => {
                                 <Badge
                                   colorPalette="orange"
                                   variant="subtle"
-                                  fontSize="3xs"
+                                  fontSize="2xs"
                                   borderRadius="md"
                                   px={1.5}
                                 >

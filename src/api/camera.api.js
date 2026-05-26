@@ -1,6 +1,20 @@
 import axios from "axios";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "/api";
+const getApiBaseUrl = () => {
+  const envUrl = import.meta.env.VITE_API_URL;
+  if (typeof window !== "undefined" && window.location && window.location.hostname) {
+    const currentHost = window.location.hostname;
+    // Si estamos accediendo desde otra máquina en la red local
+    if (currentHost !== "localhost" && currentHost !== "127.0.0.1") {
+      if (envUrl && (envUrl.includes("localhost") || envUrl.includes("127.0.0.1"))) {
+        return envUrl.replace(/localhost|127\.0\.0\.1/, currentHost);
+      }
+    }
+  }
+  return envUrl || "/api";
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 axios.interceptors.request.use(
   (config) => {
@@ -72,8 +86,8 @@ export const cameraApi = {
     return response.data;
   },
 
-  getCameras: async () => {
-    const response = await axios.get(`${API_BASE_URL}/cameras`);
+  getCameras: async (params) => {
+    const response = await axios.get(`${API_BASE_URL}/cameras`, { params });
     return response.data;
   },
 
@@ -152,6 +166,26 @@ export const cameraApi = {
     const response = await axios.delete(
       `${API_BASE_URL}/cameras/layouts/${id}`,
     );
+    return response.data;
+  },
+
+  getNodes: async () => {
+    const response = await axios.get(`${API_BASE_URL}/nodes`);
+    return response.data;
+  },
+
+  createNode: async (payload) => {
+    const response = await axios.post(`${API_BASE_URL}/nodes`, payload);
+    return response.data;
+  },
+
+  updateNode: async (id, payload) => {
+    const response = await axios.put(`${API_BASE_URL}/nodes/${id}`, payload);
+    return response.data;
+  },
+
+  deleteNode: async (id) => {
+    const response = await axios.delete(`${API_BASE_URL}/nodes/${id}`);
     return response.data;
   },
 };
