@@ -4,14 +4,13 @@ import {
   HStack,
   VStack,
   Text,
-  Badge,
   Button,
   Flex,
   IconButton,
   Popover,
   Portal,
 } from "@chakra-ui/react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import {
   toggleStream,
   fetchCamerasForNode,
@@ -32,6 +31,10 @@ import { PtzJoystick } from "./PtzJoystick.jsx";
 
 const CameraControlCard = ({ camera }) => {
   const dispatch = useDispatch();
+  const list = useSelector((state) => state.cameras.list);
+  const realCameras = useMemo(() => list.filter((c) => !c.loading && !c.offline), [list]);
+  const cameraIndex = useMemo(() => realCameras.findIndex((c) => c.dev === camera.dev), [realCameras, camera.dev]);
+  const cameraNumber = cameraIndex !== -1 ? cameraIndex + 1 : null;
   const [isReconnecting, setIsReconnecting] = useState(false);
   const [isOfflineCardCollapsed, setIsOfflineCardCollapsed] = useState(false);
 
@@ -301,62 +304,42 @@ const CameraControlCard = ({ camera }) => {
         borderColor: "nvr.border.interactive",
       }}
     >
-      <HStack justify="space-between" mb={2} align="start">
-        <VStack align="start" gap={0} flex="1">
-          <Text
-            fontWeight="bold"
-            fontSize="sm"
-            color="nvr.text.primary"
-            whiteSpace="normal"
-            wordBreak="break-word"
-            lineHeight="shorter"
-          >
-            {camera.name || formatDeviceName(camera.dev)}
-          </Text>
-          <Text
-            fontSize="2xs"
-            color="nvr.text.secondary"
-            fontFamily="mono"
-            mt={0.5}
-          >
-            {camera.dev.includes(":")
-              ? camera.dev.split(":").pop()
-              : camera.dev}
-          </Text>
-        </VStack>
-        <Badge
-          colorPalette={camera.streaming ? "red" : "gray"}
-          variant="subtle"
-          fontSize="2xs"
-          px={2}
-          py={0.5}
-          borderRadius="full"
-          size="xs"
+      <HStack justify="space-between" mb={2} align="start" width="full">
+        <Text
+          fontWeight="bold"
+          fontSize="sm"
+          color="nvr.text.primary"
+          whiteSpace="normal"
+          wordBreak="break-word"
+          lineHeight="shorter"
+          flex="1"
         >
-          {camera.streaming ? "TRANSMITIENDO" : "EN ESPERA"}
-        </Badge>
+          {cameraNumber ? `#${cameraNumber} - ` : ""}{camera.name || formatDeviceName(camera.dev)}
+        </Text>
       </HStack>
 
       <VStack align="stretch" gap={2}>
         <Flex gap={2} align="center">
           <Button
             flex="1"
-            variant={camera.streaming ? "subtle" : "solid"}
-            size="sm"
-            colorPalette={camera.streaming ? "gray" : "blue"}
+            variant="subtle"
+            size="xs"
+            borderWidth="1px"
+            borderColor={camera.streaming ? "red.subtle" : "nvr.border.default"}
+            colorPalette={camera.streaming ? "red" : "gray"}
             onClick={handleToggle}
-            fontWeight="semibold"
+            fontWeight="bold"
             transition="all 0.2s"
             _hover={{ transform: "scale(1.01)" }}
             loading={isToggling}
             spinner={
               <BeatLoader
-                size={8}
-                color={camera.streaming ? "#4b5563" : "white"}
+                size={6}
+                color={camera.streaming ? "#dc2626" : "#4b5563"}
               />
             }
           >
-            {camera.streaming ? "Detener" : "Ver"}
+            {camera.streaming ? "Transmitiendo" : "En espera"}
           </Button>
 
           <Popover.Root portalled={true} unmountOnExit={false} positioning={{ placement: "right-start", gutter: 8 }}>
@@ -364,7 +347,7 @@ const CameraControlCard = ({ camera }) => {
               <span style={{ display: "inline-block" }}>
                 <Popover.Trigger asChild>
                   <IconButton
-                    size="sm"
+                    size="xs"
                     variant="outline"
                     colorPalette="gray"
                     borderColor="nvr.border.default"
@@ -376,7 +359,7 @@ const CameraControlCard = ({ camera }) => {
                     }}
                     disabled={isToggling}
                   >
-                    <Settings size={16} />
+                    <Settings size={14} />
                   </IconButton>
                 </Popover.Trigger>
               </span>
@@ -422,6 +405,7 @@ const CameraControlCard = ({ camera }) => {
 
           <UvcControlPanel
             cameraDev={camera.dev}
+            size="xs"
             buttonProps={{ disabled: isToggling }}
             positioning={{ placement: "right-start", gutter: 8 }}
           />
@@ -431,7 +415,7 @@ const CameraControlCard = ({ camera }) => {
               <span style={{ display: "inline-block" }}>
                 <Popover.Trigger asChild>
                   <IconButton
-                    size="sm"
+                    size="xs"
                     variant="outline"
                     colorPalette="gray"
                     borderColor="nvr.border.default"
@@ -443,7 +427,7 @@ const CameraControlCard = ({ camera }) => {
                     }}
                     disabled={isToggling || !camera.streaming}
                   >
-                    <Gamepad2 size={16} />
+                    <Gamepad2 size={14} />
                   </IconButton>
                 </Popover.Trigger>
               </span>

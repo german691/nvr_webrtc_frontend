@@ -154,13 +154,17 @@ const Sidebar = () => {
   return (
     <Box
       w={isCollapsed ? "60px" : "320px"}
-      transition="width 0.35s cubic-bezier(0.4, 0, 0.2, 1)"
+      transition="all 0.35s cubic-bezier(0.4, 0, 0.2, 1)"
       h="100%"
       bg="nvr.bg.sidebar"
       display="flex"
       flexDirection="column"
       overflow="hidden"
       position="relative"
+      borderRadius="2xl"
+      borderWidth="1px"
+      borderColor="nvr.border.default"
+      shadow="md"
     >
       <Flex
         flexShrink={0}
@@ -349,7 +353,13 @@ const Sidebar = () => {
 
               const isStreaming = cam.streaming;
               const isToggling = !!togglingDevs[cam.dev];
-              const titleText = `${formatDeviceName(cam.dev)} - ${
+              
+              const realCameras = list.filter((c) => !c.loading && !c.offline);
+              const cameraIndex = realCameras.findIndex((c) => c.dev === cam.dev);
+              const cameraNumber = cameraIndex !== -1 ? cameraIndex + 1 : null;
+              const cameraNameText = cam.name || formatDeviceName(cam.dev);
+
+              const titleText = `${cameraNumber ? `#${cameraNumber} - ` : ""}${cameraNameText} - ${
                 isToggling
                   ? "Cambiando estado..."
                   : isStreaming
@@ -469,7 +479,7 @@ const Sidebar = () => {
                   <IconButton
                     size="sm"
                     variant="surface"
-                    colorPalette="blue"
+                    colorPalette="gray"
                     aria-label="Gestión de Usuarios"
                     onClick={() => setIsUserManagementOpen(true)}
                   >
@@ -484,7 +494,7 @@ const Sidebar = () => {
                   <IconButton
                     size="sm"
                     variant="surface"
-                    colorPalette="teal"
+                    colorPalette="gray"
                     aria-label="Gestión de fuentes"
                     onClick={() => setIsNodeManagementOpen(true)}
                   >
@@ -502,9 +512,10 @@ const Sidebar = () => {
                 id="logout-btn-collapsed"
                 size="sm"
                 variant="surface"
-                colorPalette="red"
+                colorPalette="gray"
                 aria-label="Cerrar sesión"
                 onClick={handleLogout}
+                _hover={{ bg: "red.50", color: "red.600", borderColor: "red.200" }}
               >
                 <LogOut size={18} />
               </IconButton>
@@ -531,7 +542,7 @@ const Sidebar = () => {
                   <IconButton
                     size="sm"
                     variant="surface"
-                    colorPalette="blue"
+                    colorPalette="gray"
                     aria-label="Gestión de Usuarios"
                     onClick={() => setIsUserManagementOpen(true)}
                   >
@@ -542,7 +553,7 @@ const Sidebar = () => {
                   <IconButton
                     size="sm"
                     variant="surface"
-                    colorPalette="teal"
+                    colorPalette="gray"
                     aria-label="Gestión de fuentes"
                     onClick={() => setIsNodeManagementOpen(true)}
                   >
@@ -556,9 +567,10 @@ const Sidebar = () => {
                 id="logout-btn"
                 size="sm"
                 variant="surface"
-                colorPalette="red"
+                colorPalette="gray"
                 aria-label="Cerrar sesión"
                 onClick={handleLogout}
+                _hover={{ bg: "red.50", color: "red.600", borderColor: "red.200" }}
               >
                 <LogOut size={16} />
               </IconButton>

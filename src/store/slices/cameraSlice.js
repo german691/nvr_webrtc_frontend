@@ -91,6 +91,8 @@ const cameraSlice = createSlice({
       })
       .addCase(fetchCamerasForNode.pending, (state, action) => {
         const nodeIp = action.meta.arg;
+        const existing = state.list.find((c) => c.nodeIp === nodeIp);
+        const nodeLabel = existing ? existing.nodeLabel : null;
         state.list = state.list.filter(
           (c) =>
             c.dev !== `loading:${nodeIp}` &&
@@ -102,19 +104,29 @@ const cameraSlice = createSlice({
           name: `Cargando cámaras en (${nodeIp})...`,
           loading: true,
           nodeIp: nodeIp,
+          nodeLabel: nodeLabel,
           modes: [],
           streaming: false,
         });
       })
       .addCase(fetchCamerasForNode.fulfilled, (state, action) => {
         const { nodeIp, cameras } = action.payload;
+        const existing = state.list.find(
+          (c) => c.nodeIp === nodeIp && c.nodeLabel,
+        );
+        const nodeLabel = existing ? existing.nodeLabel : null;
         state.list = state.list.filter(
           (c) =>
             c.dev !== `loading:${nodeIp}` &&
             c.dev !== `offline:${nodeIp}` &&
             !c.dev.startsWith(`${nodeIp}:`),
         );
-        state.list.push(...cameras);
+        const camerasWithNode = (cameras || []).map((cam) => ({
+          ...cam,
+          nodeIp,
+          nodeLabel: nodeLabel || cam.nodeLabel || null,
+        }));
+        state.list.push(...camerasWithNode);
       })
       .addCase(fetchCamerasForNode.rejected, (state, action) => {
         const nodeIp = action.meta.arg;

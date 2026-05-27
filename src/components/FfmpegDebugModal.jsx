@@ -14,12 +14,14 @@ import { BeatLoader } from "react-spinners";
 import { Activity, RefreshCw, Terminal, Trash2 } from "lucide-react";
 import { useFfmpegDebug } from "../hooks/useFfmpegDebug";
 import FfmpegStreamCard from "./ui/FfmpegStreamCard";
+import { useSelector } from "react-redux";
 
 /**
  * Modal de visualización y orquestación para procesos FFmpeg remotos.
  * Permite monitorear CPU, Memoria, URL RTSP y comandos activos en el host de borde.
  */
 export const FfmpegDebugModal = ({ isOpen, onClose, isClosing }) => {
+  const { list } = useSelector((state) => state.cameras);
   const {
     debugStreams,
     isDebuggingLoading,
@@ -235,18 +237,25 @@ export const FfmpegDebugModal = ({ isOpen, onClose, isClosing }) => {
             {/* LISTADO DE PROCESOS */}
             {!isDebuggingLoading && !debugError && debugStreams.length > 0 && (
               <VStack gap={4} align="stretch">
-                {debugStreams.map((stream) => (
-                  <FfmpegStreamCard
-                    key={stream.pid}
-                    stream={stream}
-                    isExpanded={expandedCmds.has(stream.pid)}
-                    onToggleExpand={() => toggleCmd(stream.pid)}
-                    isCopied={copiedPid === stream.pid}
-                    onCopy={() => handleCopy(stream.rtspUrl, stream.pid)}
-                    isKilling={killingPids.has(stream.pid)}
-                    onKill={() => handleKillProcess(stream.pid)}
-                  />
-                ))}
+                {debugStreams.map((stream) => {
+                  const realCameras = list.filter((c) => !c.loading && !c.offline);
+                  const cameraIndex = realCameras.findIndex((c) => c.dev === stream.device);
+                  const cameraNumber = cameraIndex !== -1 ? cameraIndex + 1 : null;
+                  
+                  return (
+                    <FfmpegStreamCard
+                      key={stream.pid}
+                      stream={stream}
+                      isExpanded={expandedCmds.has(stream.pid)}
+                      onToggleExpand={() => toggleCmd(stream.pid)}
+                      isCopied={copiedPid === stream.pid}
+                      onCopy={() => handleCopy(stream.rtspUrl, stream.pid)}
+                      isKilling={killingPids.has(stream.pid)}
+                      onKill={() => handleKillProcess(stream.pid)}
+                      cameraNumber={cameraNumber}
+                    />
+                  );
+                })}
               </VStack>
             )}
           </Box>
