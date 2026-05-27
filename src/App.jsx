@@ -59,31 +59,31 @@ function App() {
     <Flex
       h="100vh"
       w="100vw"
-      bgGradient="to-br, gray.50, gray.150"
+      bg="gray.100"
       color="gray.900"
       overflow="hidden"
-      p={0}
-      gap={0}
+      p="10px"
+      gap="10px"
     >
       <Box
-        bg="white"
-        borderRightWidth="1px"
-        borderRightColor="gray.200"
+        bg="transparent"
         display="flex"
         flexDirection="column"
         zIndex={10}
-        overflow="hidden"
+        overflow="visible"
         transition="all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
       >
-        <Box flex="1" overflow="hidden" display="flex" flexDirection="column">
-          <Sidebar />
-        </Box>
+        <Sidebar />
       </Box>
       <Box
         flex="1"
-        bg="gray.100"
+        bg="black"
         position="relative"
         overflow="hidden"
+        borderRadius="2xl"
+        borderWidth="1px"
+        borderColor="nvr.border.default"
+        shadow="lg"
       >
         <VideoWall onOpenLayoutEditor={() => setCurrentView("layout-editor")} />
       </Box>

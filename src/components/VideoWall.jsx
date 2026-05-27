@@ -137,6 +137,10 @@ export const VideoWall = ({ onOpenLayoutEditor }) => {
         let visualIdx = orderedCameras.findIndex((c) => c.dev === cam.dev);
         if (visualIdx === -1) visualIdx = 0;
 
+        const realCameras = list.filter((c) => !c.loading && !c.offline);
+        const cameraIndex = realCameras.findIndex((c) => c.dev === cam.dev);
+        const cameraNumber = cameraIndex !== -1 ? cameraIndex + 1 : null;
+
         const areaProps = getGridAreaProps(
           visualIdx,
           count,
@@ -215,7 +219,7 @@ export const VideoWall = ({ onOpenLayoutEditor }) => {
                 <GripVertical size={14} color="#A0AEC0" />
                 <VStack align="start" gap={0}>
                   <Text fontSize="xs" fontWeight="bold" color="white">
-                    {cam.name || cam.dev}
+                    {cameraNumber ? `#${cameraNumber} - ` : ""}{cam.name || cam.dev}
                   </Text>
                   {cam.active_settings && (
                     <Text

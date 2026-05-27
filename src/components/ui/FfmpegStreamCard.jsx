@@ -38,6 +38,7 @@ export const FfmpegStreamCard = ({
   onCopy,
   isKilling,
   onKill,
+  cameraNumber,
 }) => {
   return (
     <Box
@@ -53,6 +54,19 @@ export const FfmpegStreamCard = ({
       <Flex justify="space-between" align="center" mb={3}>
         <HStack gap={2}>
           <Box className="pulse-blue-dot" />
+          {cameraNumber && (
+            <Badge
+              colorPalette="blue"
+              variant="solid"
+              fontSize="xs"
+              fontWeight="extrabold"
+              borderRadius="md"
+              px={2}
+              py={0.5}
+            >
+              #{cameraNumber}
+            </Badge>
+          )}
           <Text
             fontWeight="bold"
             fontSize="sm"
@@ -144,7 +158,11 @@ export const FfmpegStreamCard = ({
               fontWeight="extrabold"
               color="nvr.text.primary"
             >
-              {stream.cpu}% ({(stream.cpu / 100).toFixed(1)} {parseFloat((stream.cpu / 100).toFixed(1)) === 1 ? "Core" : "Cores"})
+              {stream.cpu}% ({(stream.cpu / 100).toFixed(1)}{" "}
+              {parseFloat((stream.cpu / 100).toFixed(1)) === 1
+                ? "Core"
+                : "Cores"}
+              )
             </Text>
           </Flex>
           <Box
@@ -307,9 +325,9 @@ export const FfmpegStreamCard = ({
             mt={1.5}
             p={2.5}
             bg="nvr.bg.console"
-            color="nvr.text.console"
+            color="gray.100"
             fontFamily="mono"
-            fontSize="2xs"
+            fontSize="xs"
             borderRadius="xl"
             overflowX="auto"
             whiteSpace="pre-wrap"

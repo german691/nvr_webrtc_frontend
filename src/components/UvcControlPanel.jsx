@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import {
   Box,
   Flex,
@@ -12,11 +12,13 @@ import {
   Popover,
   Portal,
   NumberInput,
+  Group,
 } from "@chakra-ui/react";
 import { cameraApi } from "../api/camera.api";
-import { SlidersHorizontal, Minus, Plus } from "lucide-react";
+import { SlidersHorizontal, Flower, Mountain } from "lucide-react";
 import { Tooltip } from "./ui/tooltip";
 import { BeatLoader } from "react-spinners";
+import FocusSlider from "./ui/FocusSlider.jsx";
 
 export const UvcControlPanel = ({
   cameraDev,
@@ -142,6 +144,65 @@ export const UvcControlPanel = ({
     await handleImmediateCommit(focusAbsCtrl.name, targetValue);
   };
 
+  const wheelHandlerRef = useRef(null);
+
+  const focusScrollCallbackRef = useCallback(
+    (node) => {
+      // Limpia el escuchador anterior si está activo
+      if (wheelHandlerRef.current && wheelHandlerRef.current.node) {
+        const { node: prevNode, handler: prevHandler } =
+          wheelHandlerRef.current;
+        prevNode.removeEventListener("wheel", prevHandler);
+        wheelHandlerRef.current = null;
+      }
+
+      // Registra el escuchador en el nuevo nodo montado instantáneamente
+      if (node) {
+        const handleWheel = (e) => {
+          const autoFocusNames = [
+            "focus_auto",
+            "focus_automatic_continuous",
+            "auto_focus",
+          ];
+          const absFocusNames = ["focus_absolute", "focus"];
+          const focusAutoCtrl = hwControls.find((ctrl) =>
+            autoFocusNames.includes(ctrl.name),
+          );
+          const focusAbsCtrl = hwControls.find((ctrl) =>
+            absFocusNames.includes(ctrl.name),
+          );
+
+          if (!focusAbsCtrl) return;
+
+          // Evita hacer scroll sobre el contenido o popover del componente
+          e.preventDefault();
+          e.stopPropagation();
+
+          const step = focusAbsCtrl.step ?? 1;
+          const minVal = focusAbsCtrl.min ?? 0;
+          const maxVal = focusAbsCtrl.max ?? 250;
+          const range = maxVal - minVal;
+          const deltaMult = Math.max(1, Math.round(range / 50));
+          const delta = e.deltaY < 0 ? step * deltaMult : -step * deltaMult;
+          let newVal = Number(focusAbsCtrl.value) + delta;
+          if (newVal < minVal) newVal = minVal;
+          if (newVal > maxVal) newVal = maxVal;
+
+          if (focusAutoCtrl && Number(focusAutoCtrl.value) === 1) {
+            handleLocalChange(focusAutoCtrl.name, 0);
+            handleImmediateCommit(focusAutoCtrl.name, 0);
+          }
+          handleLocalChange(focusAbsCtrl.name, newVal);
+          debouncedCommitChange(focusAbsCtrl.name, newVal);
+        };
+
+        node.addEventListener("wheel", handleWheel, { passive: false });
+        wheelHandlerRef.current = { node, handler: handleWheel };
+      }
+    },
+    [hwControls, debouncedCommitChange, handleImmediateCommit],
+  );
+
   return (
     <Popover.Root
       open={isOpen}
@@ -247,14 +308,10 @@ export const UvcControlPanel = ({
                     },
                   }}
                 >
+                  <Separator borderColor="nvr.border.default" />
+
                   {saturationCtrl && (
-                    <Box
-                      bg="nvr.bg.muted"
-                      p={2}
-                      borderRadius="lg"
-                      borderWidth="1px"
-                      borderColor="nvr.border.subtle"
-                    >
+                    <Box>
                       <Flex justify="space-between" align="center">
                         <Text fontSize="xs" fontWeight="bold" color="gray.700">
                           Modo Blanco y Negro
@@ -281,60 +338,26 @@ export const UvcControlPanel = ({
                     </Box>
                   )}
 
+                  <Separator borderColor="nvr.border.default" />
+
                   {(focusAutoCtrl || focusAbsCtrl) && (
-                    <Box
-                      bg="nvr.bg.muted"
-                      p={2.5}
-                      borderRadius="lg"
-                      borderWidth="1px"
-                      borderColor="nvr.border.subtle"
-                    >
-                      <Flex justify="space-between" align="center" mb={2}>
+                    <VStack align="stretch" gap={2.5} w="100%">
+                      <Flex justify="space-between" align="center">
                         <Text fontSize="xs" fontWeight="bold" color="gray.700">
                           Ajuste de Foco
                         </Text>
                       </Flex>
 
-                      <HStack gap={2} mb={focusAbsCtrl ? 3 : 0} width="100%">
-                        {focusAutoCtrl && (
-                          <Tooltip
-                            content="Activar Enfoque Automático"
-                            showArrow
-                          >
-                            <Button
-                              size="xs"
-                              flex="1"
-                              borderRadius="md"
-                              colorPalette={
-                                Number(focusAutoCtrl.value) === 1
-                                  ? "blue"
-                                  : "gray"
-                              }
-                              variant={
-                                Number(focusAutoCtrl.value) === 1
-                                  ? "solid"
-                                  : "outline"
-                              }
-                              onClick={() => {
-                                const newVal =
-                                  Number(focusAutoCtrl.value) === 1 ? 0 : 1;
-                                handleLocalChange(focusAutoCtrl.name, newVal);
-                                handleImmediateCommit(
-                                  focusAutoCtrl.name,
-                                  newVal,
-                                );
-                              }}
-                            >
-                              Automático
-                            </Button>
-                          </Tooltip>
-                        )}
+                      {/* Fila 1: Los 3 botones y el input numérico, todo en una sola línea */}
+                      <HStack
+                        gap={1.5}
+                        width="100%"
+                        justify="space-between"
+                        mb={1.5}
+                      >
                         {focusAbsCtrl && (
                           <>
-                            <Tooltip
-                              content="Enfoque Mínimo (Cercano / Macro)"
-                              showArrow
-                            >
+                            <Tooltip content="Enfoque Mínimo (Macro)" showArrow>
                               <IconButton
                                 size="xs"
                                 variant="outline"
@@ -345,10 +368,13 @@ export const UvcControlPanel = ({
                                   const minVal = focusAbsCtrl.min ?? 0;
                                   setAbsoluteFocus(minVal);
                                 }}
+                                h="32px"
+                                w="32px"
                               >
-                                <Minus size={14} />
+                                <Flower size={14} />
                               </IconButton>
                             </Tooltip>
+
                             <Tooltip
                               content="Enfoque Máximo (Infinito)"
                               showArrow
@@ -363,25 +389,80 @@ export const UvcControlPanel = ({
                                   const maxVal = focusAbsCtrl.max ?? 250;
                                   setAbsoluteFocus(maxVal);
                                 }}
+                                h="32px"
+                                w="32px"
                               >
-                                <Plus size={14} />
+                                <Mountain size={14} />
                               </IconButton>
                             </Tooltip>
                           </>
                         )}
-                      </HStack>
 
-                      {focusAbsCtrl && (
-                        <VStack align="stretch" gap={1}>
-                          <HStack gap={3} width="100%">
-                            <input
-                              type="range"
-                              min={focusAbsCtrl.min ?? 0}
-                              max={focusAbsCtrl.max ?? 250}
-                              step={focusAbsCtrl.step ?? 1}
-                              value={focusAbsCtrl.value}
-                              onChange={async (e) => {
-                                const val = Number(e.target.value);
+                        {/* Botones de Toggle: Manual y Auto en un Group attached */}
+                        {focusAutoCtrl && (
+                          <Group attached flexGrow="1">
+                            <Button
+                              size="xs"
+                              variant={
+                                Number(focusAutoCtrl.value) === 0
+                                  ? "subtle"
+                                  : "outline"
+                              }
+                              colorPalette={
+                                Number(focusAutoCtrl.value) === 0
+                                  ? "blue"
+                                  : "gray"
+                              }
+                              borderRadius="md"
+                              onClick={() => {
+                                handleLocalChange(focusAutoCtrl.name, 0);
+                                handleImmediateCommit(focusAutoCtrl.name, 0);
+                              }}
+                              fontSize="2xs"
+                              fontWeight="bold"
+                              flexGrow="1"
+                              h="32px"
+                            >
+                              Manual
+                            </Button>
+                            <Button
+                              size="xs"
+                              variant={
+                                Number(focusAutoCtrl.value) === 1
+                                  ? "subtle"
+                                  : "outline"
+                              }
+                              colorPalette={
+                                Number(focusAutoCtrl.value) === 1
+                                  ? "blue"
+                                  : "gray"
+                              }
+                              borderRadius="md"
+                              onClick={() => {
+                                handleLocalChange(focusAutoCtrl.name, 1);
+                                handleImmediateCommit(focusAutoCtrl.name, 1);
+                              }}
+                              px="4"
+                              fontSize="2xs"
+                              fontWeight="bold"
+                              flexGrow="1"
+                              h="32px"
+                            >
+                              Auto
+                            </Button>
+                          </Group>
+                        )}
+
+                        {/* Input Numérico de Foco Absoluto */}
+                        {focusAbsCtrl && (
+                          <NumberInput.Root
+                            min={focusAbsCtrl.min ?? 0}
+                            max={focusAbsCtrl.max ?? 250}
+                            step={focusAbsCtrl.step ?? 1}
+                            value={String(focusAbsCtrl.value)}
+                            onValueChange={async (details) => {
+                              const val = details.valueAsNumber;
+                              if (!isNaN(val)) {
                                 if (
                                   focusAutoCtrl &&
                                   Number(focusAutoCtrl.value) === 1
@@ -394,48 +475,43 @@ export const UvcControlPanel = ({
                                 }
                                 handleLocalChange(focusAbsCtrl.name, val);
                                 debouncedCommitChange(focusAbsCtrl.name, val);
-                              }}
-                              style={{
-                                flex: 1,
-                                accentColor: "#3182ce",
-                                height: "6px",
-                                borderRadius: "3px",
-                                background: "#E2E8F0",
-                                outline: "none",
-                                cursor: "pointer",
-                              }}
-                            />
-                            <NumberInput.Root
-                              min={focusAbsCtrl.min ?? 0}
-                              max={focusAbsCtrl.max ?? 250}
-                              step={focusAbsCtrl.step ?? 1}
-                              value={String(focusAbsCtrl.value)}
-                              onValueChange={async (details) => {
-                                const val = details.valueAsNumber;
-                                if (!isNaN(val)) {
-                                  if (
-                                    focusAutoCtrl &&
-                                    Number(focusAutoCtrl.value) === 1
-                                  ) {
-                                    handleLocalChange(focusAutoCtrl.name, 0);
-                                    await handleImmediateCommit(
-                                      focusAutoCtrl.name,
-                                      0,
-                                    );
-                                  }
-                                  handleLocalChange(focusAbsCtrl.name, val);
-                                  debouncedCommitChange(focusAbsCtrl.name, val);
-                                }
-                              }}
-                              size="xs"
+                              }
+                            }}
+                            size="sm"
+                          >
+                            <NumberInput.Input
+                              bg="nvr.bg.card"
+                              borderRadius="md"
+                              borderColor="nvr.border.interactive"
+                              textAlign="center"
+                              fontSize="2xs"
                               w="60px"
-                            >
-                              <NumberInput.Input
-                                bg="nvr.bg.card"
-                                borderRadius="md"
-                                borderColor="nvr.border.interactive"
-                                textAlign="center"
-                                onBlur={async () => {
+                              p={1}
+                              h="32px"
+                              onBlur={async () => {
+                                let val = Number(focusAbsCtrl.value);
+                                const minVal = focusAbsCtrl.min ?? 0;
+                                const maxVal = focusAbsCtrl.max ?? 250;
+                                if (isNaN(val))
+                                  val = focusAbsCtrl.default ?? minVal;
+                                if (val < minVal) val = minVal;
+                                if (val > maxVal) val = maxVal;
+
+                                if (
+                                  focusAutoCtrl &&
+                                  Number(focusAutoCtrl.value) === 1
+                                ) {
+                                  handleLocalChange(focusAutoCtrl.name, 0);
+                                  await handleImmediateCommit(
+                                    focusAutoCtrl.name,
+                                    0,
+                                  );
+                                }
+                                handleLocalChange(focusAbsCtrl.name, val);
+                                handleImmediateCommit(focusAbsCtrl.name, val);
+                              }}
+                              onKeyDown={async (e) => {
+                                if (e.key === "Enter") {
                                   let val = Number(focusAbsCtrl.value);
                                   const minVal = focusAbsCtrl.min ?? 0;
                                   const maxVal = focusAbsCtrl.max ?? 250;
@@ -456,41 +532,26 @@ export const UvcControlPanel = ({
                                   }
                                   handleLocalChange(focusAbsCtrl.name, val);
                                   handleImmediateCommit(focusAbsCtrl.name, val);
-                                }}
-                                onKeyDown={async (e) => {
-                                  if (e.key === "Enter") {
-                                    let val = Number(focusAbsCtrl.value);
-                                    const minVal = focusAbsCtrl.min ?? 0;
-                                    const maxVal = focusAbsCtrl.max ?? 250;
-                                    if (isNaN(val))
-                                      val = focusAbsCtrl.default ?? minVal;
-                                    if (val < minVal) val = minVal;
-                                    if (val > maxVal) val = maxVal;
+                                  e.currentTarget.blur();
+                                }
+                              }}
+                            />
+                          </NumberInput.Root>
+                        )}
+                      </HStack>
 
-                                    if (
-                                      focusAutoCtrl &&
-                                      Number(focusAutoCtrl.value) === 1
-                                    ) {
-                                      handleLocalChange(focusAutoCtrl.name, 0);
-                                      await handleImmediateCommit(
-                                        focusAutoCtrl.name,
-                                        0,
-                                      );
-                                    }
-                                    handleLocalChange(focusAbsCtrl.name, val);
-                                    handleImmediateCommit(
-                                      focusAbsCtrl.name,
-                                      val,
-                                    );
-                                    e.currentTarget.blur();
-                                  }
-                                }}
-                              />
-                            </NumberInput.Root>
-                          </HStack>
-                        </VStack>
+                      {/* Fila 2: El dial de foco calibrado (slider) con soporte de scroll */}
+                      {focusAbsCtrl && (
+                        <FocusSlider
+                          focusAbsCtrl={focusAbsCtrl}
+                          focusAutoCtrl={focusAutoCtrl}
+                          focusScrollCallbackRef={focusScrollCallbackRef}
+                          handleLocalChange={handleLocalChange}
+                          debouncedCommitChange={debouncedCommitChange}
+                          handleImmediateCommit={handleImmediateCommit}
+                        />
                       )}
-                    </Box>
+                    </VStack>
                   )}
 
                   <Separator borderColor="nvr.border.default" />

@@ -1,19 +1,38 @@
 import { useEffect, useRef, useState, useMemo, memo } from "react";
 import {
   Box,
+  HStack,
+  Popover,
   Text,
+  VStack,
+  Portal,
   Center,
 } from "@chakra-ui/react";
+import {
+  Camera,
+  ZoomIn,
+  ZoomOut,
+  Video,
+  Square,
+  Maximize,
+  Minimize,
+  Focus,
+  Settings,
+  Gamepad2,
+} from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   toggleStream,
+  togglePtzOverlay,
   setPtzOverlay,
 } from "../store/slices/cameraSlice";
+import { StreamSettings } from "./StreamSettings.jsx";
+import { UvcControlPanel } from "./UvcControlPanel.jsx";
+import PlayerButton from "./ui/PlayerButton";
 import { useVideoZoom } from "../hooks/useVideoZoom";
 import { useLocalRecorder } from "../hooks/useLocalRecorder";
 import { getSortedResolutions, getSortedFps } from "../utils/camera.js";
 import { PtzJoystick } from "./PtzJoystick.jsx";
-import CompactPlayerControls from "./CompactPlayerControls.jsx";
 
 /**
  * Componente Reproductor WebRTC en tiempo real.
@@ -396,35 +415,22 @@ export const WebRTCPlayer = ({ url, camera }) => {
         />
       )}
 
-      <CompactPlayerControls
-        camera={camera}
-        isFullscreen={isFullscreen}
-        containerRef={containerRef}
-        videoRef={videoRef}
-        isToggling={isToggling}
-        isStreamSettingsOpen={isStreamSettingsOpen}
-        setIsStreamSettingsOpen={setIsStreamSettingsOpen}
-        isUvcSettingsOpen={isUvcSettingsOpen}
-        setIsUvcSettingsOpen={setIsUvcSettingsOpen}
-        isPtzOverlayOpen={isPtzOverlayOpen}
-        handleScreenshot={handleScreenshot}
-        isRecording={isRecording}
-        startRecording={startRecording}
-        stopRecording={stopRecording}
-        scale={scale}
-        handleZoomIn={handleZoomIn}
-        handleZoomOut={handleZoomOut}
-        handleResetZoom={handleResetZoom}
-        toggleFullScreen={toggleFullScreen}
-        sortedResolutions={sortedResolutions}
-        sortedFps={sortedFps}
-        displayRes={displayRes}
-        displayFps={displayFps}
-        displayBitrate={displayBitrate}
-        handleSetRes={handleSetRes}
-        handleSetFps={handleSetFps}
-        handleSetBitrate={handleSetBitrate}
-        showControls={showControls}
+      <HStack
+        position="absolute"
+        bottom={3}
+        right={3}
+        bg="rgba(255, 255, 255, 0.85)"
+        backdropFilter="blur(8px)"
+        p="4px 6px"
+        borderRadius="xl"
+        shadow="md"
+        gap={1}
+        zIndex={10}
+        opacity={showControls ? 1 : 0}
+        pointerEvents={showControls ? "auto" : "none"}
+        transition="opacity 0.3s ease-in-out"
+        onMouseDown={(e) => e.stopPropagation()}
+        onDoubleClick={(e) => e.stopPropagation()}
         onMouseEnter={() => {
           if (isFullscreen) {
             setShowControls(true);
@@ -440,7 +446,166 @@ export const WebRTCPlayer = ({ url, camera }) => {
             );
           }
         }}
-      />
+      >
+        {camera && (
+          <UvcControlPanel
+            key={`${camera.dev}-${isFullscreen}`}
+            cameraDev={camera.dev}
+            size="xs"
+            variant="ghost"
+            buttonProps={{
+              _hover: { bg: "blackAlpha.100" },
+            }}
+            onOpenChange={setIsUvcSettingsOpen}
+            portalContainer={isFullscreen ? containerRef : undefined}
+          />
+        )}
+
+        {camera && (
+          <PlayerButton
+            tooltip={
+              isPtzOverlayOpen ? "Ocultar control PTZ" : "Ver control PTZ"
+            }
+            ariaLabel="Joystick PTZ"
+            onClick={() => dispatch(togglePtzOverlay(camera.dev))}
+            color={isPtzOverlayOpen ? "blue.600" : "gray.700"}
+            bg={isPtzOverlayOpen ? "rgba(37, 99, 235, 0.1)" : "transparent"}
+            _hover={{ bg: "blackAlpha.100" }}
+          >
+            <Gamepad2 size={14} />
+          </PlayerButton>
+        )}
+
+        {camera && (
+          <Popover.Root
+            key={`stream-settings-${isFullscreen}`}
+            open={isStreamSettingsOpen}
+            onOpenChange={(details) => setIsStreamSettingsOpen(details.open)}
+            portalled={true}
+            unmountOnExit={false}
+          >
+            <PlayerButton
+              tooltip="Ajustes de transmisión"
+              ariaLabel="Ajustes de transmisión"
+            >
+              <Popover.Trigger asChild>
+                <Settings size={14} />
+              </Popover.Trigger>
+            </PlayerButton>
+            <Portal container={isFullscreen ? containerRef : undefined}>
+              <Popover.Positioner zIndex={1600}>
+                <Popover.Content
+                  bg="white"
+                  borderColor="gray.200"
+                  shadow="lg"
+                  p={3}
+                  borderRadius="xl"
+                  zIndex="popover"
+                  width="280px"
+                  onWheel={(e) => e.stopPropagation()}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onMouseMove={(e) => e.stopPropagation()}
+                  onMouseUp={(e) => e.stopPropagation()}
+                  onDoubleClick={(e) => e.stopPropagation()}
+                >
+                  <Popover.Arrow />
+                  <Popover.Body p={0}>
+                    <Text
+                      fontSize="xs"
+                      fontWeight="bold"
+                      color="gray.700"
+                      mb={3}
+                      textAlign="left"
+                    >
+                      Ajustes
+                    </Text>
+                    <VStack align="stretch" gap={3}>
+                      <StreamSettings
+                        resolutions={sortedResolutions}
+                        fpsOptions={sortedFps}
+                        displayRes={displayRes}
+                        displayFps={displayFps}
+                        displayBitrate={displayBitrate}
+                        setRes={handleSetRes}
+                        setFps={handleSetFps}
+                        setBitrate={handleSetBitrate}
+                        disabled={isToggling}
+                      />
+                    </VStack>
+                  </Popover.Body>
+                </Popover.Content>
+              </Popover.Positioner>
+            </Portal>
+          </Popover.Root>
+        )}
+
+        <PlayerButton
+          tooltip={
+            isFullscreen ? "Salir de Pantalla completa" : "Pantalla completa"
+          }
+          ariaLabel="Pantalla completa"
+          onClick={toggleFullScreen}
+        >
+          {isFullscreen ? <Minimize size={14} /> : <Maximize size={14} />}
+        </PlayerButton>
+
+        <PlayerButton
+          tooltip="Tomar captura de Imagen"
+          ariaLabel="Tomar captura"
+          onClick={handleScreenshot}
+        >
+          <Camera size={14} />
+        </PlayerButton>
+
+        <PlayerButton
+          tooltip="Restablecer zoom y Paneo"
+          ariaLabel="Restablecer zoom"
+          onClick={handleResetZoom}
+          disabled={scale === 1}
+        >
+          <Focus size={14} />
+        </PlayerButton>
+
+        <PlayerButton
+          tooltip="Acercar zoom"
+          ariaLabel="Acercar"
+          onClick={handleZoomIn}
+          disabled={scale >= 4}
+        >
+          <ZoomIn size={14} />
+        </PlayerButton>
+
+        <PlayerButton
+          tooltip="Alejar zoom"
+          ariaLabel="Alejar"
+          onClick={handleZoomOut}
+          disabled={scale <= 1}
+        >
+          <ZoomOut size={14} />
+        </PlayerButton>
+
+        <PlayerButton
+          tooltip={
+            isRecording ? "Detener grabación de video" : "Grabar video local"
+          }
+          ariaLabel={isRecording ? "Detener grabación" : "Grabar"}
+          onClick={isRecording ? stopRecording : () => startRecording(videoRef)}
+          colorPalette={isRecording ? "red" : "gray"}
+          color={isRecording ? "red.600" : "gray.700"}
+          boxShadow={isRecording ? "0 0 10px rgba(239, 68, 68, 0.2)" : "none"}
+          _hover={
+            isRecording
+              ? { bg: "red.50", transform: "scale(1.03)" }
+              : { bg: "blackAlpha.100", transform: "scale(1.03)" }
+          }
+        >
+          {isRecording ? (
+            <Square size={14} fill="currentColor" />
+          ) : (
+            <Video size={14} />
+          )}
+        </PlayerButton>
+      </HStack>
     </Box>
   );
 };
