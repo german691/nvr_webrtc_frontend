@@ -104,7 +104,7 @@ export const FfmpegDebugModal = ({ isOpen, onClose, isClosing }) => {
                     fontSize="md"
                     color="nvr.text.primary"
                   >
-                    Depuración de Flujos FFmpeg
+                    Depuración de flujos de video
                   </Text>
                   {!isDebuggingLoading &&
                     !debugError &&

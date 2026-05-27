@@ -151,7 +151,7 @@ export const NodeManagementModal = ({ isOpen, onClose }) => {
       });
 
       if (response && response.status === "success") {
-        showNotification("Nodo Edge agregado y registrado con éxito.");
+        showNotification("Fuente de video agregada y registrado con éxito.");
         fetchNodes();
         resetForm();
       } else {
@@ -307,10 +307,10 @@ export const NodeManagementModal = ({ isOpen, onClose }) => {
               </Center>
               <VStack align="stretch" gap={0}>
                 <Text fontWeight="bold" fontSize="md" color="nvr.text.primary">
-                  {isCreating && "Añadir Nuevo Nodo Edge"}
+                  {isCreating && "Añadir nueva fuente"}
                   {editingNode &&
                     `Editar Nodo: ${editingNode.label || editingNode.ip}`}
-                  {!isFormOpen && "Gestión de Nodos Edge (Mini-PCs)"}
+                  {!isFormOpen && "Gestión de fuentes"}
                 </Text>
                 <Text fontSize="2xs" color="nvr.text.secondary">
                   {isCreating &&
@@ -604,7 +604,7 @@ export const NodeManagementModal = ({ isOpen, onClose }) => {
                   gap={2}
                 >
                   <Plus size={14} />
-                  Añadir Nuevo Nodo Edge
+                  Añadir nueva fuente de video
                 </Button>
 
                 {nodes.length === 0 ? (
@@ -759,7 +759,7 @@ export const NodeManagementModal = ({ isOpen, onClose }) => {
                     <Trash2 size={20} />
                   </Center>
                   <Heading size="xs" color="nvr.text.primary">
-                    ¿Eliminar Nodo Edge del pool?
+                    ¿Eliminar fuente de video del pool?
                   </Heading>
                 </HStack>
 

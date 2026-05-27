@@ -1,5 +1,13 @@
 import { useEffect, useRef, useState, useMemo, memo } from "react";
-import { Box, HStack, Popover, Text, VStack, Portal, Center } from "@chakra-ui/react";
+import {
+  Box,
+  HStack,
+  Popover,
+  Text,
+  VStack,
+  Portal,
+  Center,
+} from "@chakra-ui/react";
 import {
   Camera,
   ZoomIn,
@@ -13,7 +21,11 @@ import {
   Gamepad2,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
-import { toggleStream, togglePtzOverlay, setPtzOverlay } from "../store/slices/cameraSlice";
+import {
+  toggleStream,
+  togglePtzOverlay,
+  setPtzOverlay,
+} from "../store/slices/cameraSlice";
 import { StreamSettings } from "./StreamSettings.jsx";
 import { UvcControlPanel } from "./UvcControlPanel.jsx";
 import PlayerButton from "./ui/PlayerButton";
@@ -29,7 +41,9 @@ import { PtzJoystick } from "./PtzJoystick.jsx";
  */
 export const WebRTCPlayer = ({ url, camera }) => {
   const dispatch = useDispatch();
-  const activePtzOverlays = useSelector((state) => state.cameras.activePtzOverlays);
+  const activePtzOverlays = useSelector(
+    (state) => state.cameras.activePtzOverlays,
+  );
   const isPtzOverlayOpen = !!(camera?.dev && activePtzOverlays[camera.dev]);
   const containerRef = useRef(null);
   const videoRef = useRef(null);
@@ -64,7 +78,10 @@ export const WebRTCPlayer = ({ url, camera }) => {
   const { isRecording, startRecording, stopRecording } = useLocalRecorder();
 
   // Stream options sorting and selectors
-  const sortedResolutions = useMemo(() => getSortedResolutions(camera?.modes), [camera?.modes]);
+  const sortedResolutions = useMemo(
+    () => getSortedResolutions(camera?.modes),
+    [camera?.modes],
+  );
   const sortedFps = useMemo(() => getSortedFps(camera?.modes), [camera?.modes]);
 
   const displayRes = camera?.active_settings?.resolution || "1920x1080";
@@ -83,7 +100,7 @@ export const WebRTCPlayer = ({ url, camera }) => {
           bitrate: displayBitrate,
           cleanBitrate: displayBitrate,
           action: "start",
-        })
+        }),
       ).unwrap();
     } catch (error) {
       console.error("Failed to set resolution:", error);
@@ -104,7 +121,7 @@ export const WebRTCPlayer = ({ url, camera }) => {
           bitrate: displayBitrate,
           cleanBitrate: displayBitrate,
           action: "start",
-        })
+        }),
       ).unwrap();
     } catch (error) {
       console.error("Failed to set FPS:", error);
@@ -125,7 +142,7 @@ export const WebRTCPlayer = ({ url, camera }) => {
           bitrate: newBitrate,
           cleanBitrate: newBitrate,
           action: "start",
-        })
+        }),
       ).unwrap();
     } catch (error) {
       console.error("Failed to set bitrate:", error);
@@ -174,7 +191,7 @@ export const WebRTCPlayer = ({ url, camera }) => {
         const answerSdp = await response.text();
         await pc.setRemoteDescription({ type: "answer", sdp: answerSdp });
       } catch (error) {
-        console.error("Fallo conectando al nodo Edge:", error);
+        console.error("Fallo conectando a la fuente:", error);
       }
     };
 
@@ -275,11 +292,16 @@ export const WebRTCPlayer = ({ url, camera }) => {
   // --- FULLSCREEN ---
   const toggleFullScreen = async () => {
     const videowall = document.getElementById("nvr-videowall");
-    const isThisElementFullscreen = document.fullscreenElement === containerRef.current;
+    const isThisElementFullscreen =
+      document.fullscreenElement === containerRef.current;
 
     if (!isThisElementFullscreen) {
       // Registrar si el videowall estaba en pantalla completa justo antes de maximizar esta cámara
-      if (document.fullscreenElement && videowall && document.fullscreenElement === videowall) {
+      if (
+        document.fullscreenElement &&
+        videowall &&
+        document.fullscreenElement === videowall
+      ) {
         wasVideowallFullscreenRef.current = true;
       } else {
         wasVideowallFullscreenRef.current = false;
@@ -297,7 +319,10 @@ export const WebRTCPlayer = ({ url, camera }) => {
         // Solicitamos pantalla completa en el videowall en el siguiente tick del event loop (80ms)
         setTimeout(() => {
           videowall.requestFullscreen().catch((err) => {
-            console.error("Error al restaurar pantalla completa del videowall:", err);
+            console.error(
+              "Error al restaurar pantalla completa del videowall:",
+              err,
+            );
           });
         }, 80);
         wasVideowallFullscreenRef.current = false;
@@ -379,7 +404,9 @@ export const WebRTCPlayer = ({ url, camera }) => {
         <PtzJoystick
           cameraDev={camera.dev}
           isFloating={true}
-          onClose={() => dispatch(setPtzOverlay({ dev: camera.dev, open: false }))}
+          onClose={() =>
+            dispatch(setPtzOverlay({ dev: camera.dev, open: false }))
+          }
         />
       )}
 
@@ -422,7 +449,7 @@ export const WebRTCPlayer = ({ url, camera }) => {
             size="xs"
             variant="ghost"
             buttonProps={{
-              _hover: { bg: "blackAlpha.100" }
+              _hover: { bg: "blackAlpha.100" },
             }}
             onOpenChange={setIsUvcSettingsOpen}
             portalContainer={isFullscreen ? containerRef : undefined}
@@ -431,7 +458,9 @@ export const WebRTCPlayer = ({ url, camera }) => {
 
         {camera && (
           <PlayerButton
-            tooltip={isPtzOverlayOpen ? "Ocultar Joystick PTZ" : "Mostrar Joystick PTZ (UVC)"}
+            tooltip={
+              isPtzOverlayOpen ? "Ocultar control PTZ" : "Ver control PTZ"
+            }
             ariaLabel="Joystick PTZ"
             onClick={() => dispatch(togglePtzOverlay(camera.dev))}
             color={isPtzOverlayOpen ? "blue.600" : "gray.700"}
@@ -451,8 +480,8 @@ export const WebRTCPlayer = ({ url, camera }) => {
             unmountOnExit={false}
           >
             <PlayerButton
-              tooltip="Ajustes de Transmisión (Resolución y FPS)"
-              ariaLabel="Configuración de transmisión"
+              tooltip="Ajustes de transmisión"
+              ariaLabel="Ajustes de transmisión"
             >
               <Popover.Trigger asChild>
                 <Settings size={14} />
@@ -476,8 +505,14 @@ export const WebRTCPlayer = ({ url, camera }) => {
                 >
                   <Popover.Arrow />
                   <Popover.Body p={0}>
-                    <Text fontSize="xs" fontWeight="bold" color="gray.700" mb={3} textAlign="left">
-                      Ajustes de Transmisión
+                    <Text
+                      fontSize="xs"
+                      fontWeight="bold"
+                      color="gray.700"
+                      mb={3}
+                      textAlign="left"
+                    >
+                      Ajustes
                     </Text>
                     <VStack align="stretch" gap={3}>
                       <StreamSettings
@@ -500,24 +535,26 @@ export const WebRTCPlayer = ({ url, camera }) => {
         )}
 
         <PlayerButton
-          tooltip={isFullscreen ? "Salir de Pantalla Completa" : "Pantalla Completa"}
-          ariaLabel="Pantalla Completa"
+          tooltip={
+            isFullscreen ? "Salir de Pantalla completa" : "Pantalla completa"
+          }
+          ariaLabel="Pantalla completa"
           onClick={toggleFullScreen}
         >
           {isFullscreen ? <Minimize size={14} /> : <Maximize size={14} />}
         </PlayerButton>
 
         <PlayerButton
-          tooltip="Tomar Captura de Imagen"
-          ariaLabel="Tomar Captura"
+          tooltip="Tomar captura de Imagen"
+          ariaLabel="Tomar captura"
           onClick={handleScreenshot}
         >
           <Camera size={14} />
         </PlayerButton>
 
         <PlayerButton
-          tooltip="Restablecer Zoom y Paneo"
-          ariaLabel="Restablecer Zoom"
+          tooltip="Restablecer zoom y Paneo"
+          ariaLabel="Restablecer zoom"
           onClick={handleResetZoom}
           disabled={scale === 1}
         >
@@ -525,7 +562,7 @@ export const WebRTCPlayer = ({ url, camera }) => {
         </PlayerButton>
 
         <PlayerButton
-          tooltip="Acercar Zoom"
+          tooltip="Acercar zoom"
           ariaLabel="Acercar"
           onClick={handleZoomIn}
           disabled={scale >= 4}
@@ -534,7 +571,7 @@ export const WebRTCPlayer = ({ url, camera }) => {
         </PlayerButton>
 
         <PlayerButton
-          tooltip="Alejar Zoom"
+          tooltip="Alejar zoom"
           ariaLabel="Alejar"
           onClick={handleZoomOut}
           disabled={scale <= 1}
@@ -543,8 +580,10 @@ export const WebRTCPlayer = ({ url, camera }) => {
         </PlayerButton>
 
         <PlayerButton
-          tooltip={isRecording ? "Detener Grabación de Video" : "Grabar Video Local"}
-          ariaLabel={isRecording ? "Detener Grabación" : "Grabar"}
+          tooltip={
+            isRecording ? "Detener grabación de video" : "Grabar video local"
+          }
+          ariaLabel={isRecording ? "Detener grabación" : "Grabar"}
           onClick={isRecording ? stopRecording : () => startRecording(videoRef)}
           colorPalette={isRecording ? "red" : "gray"}
           color={isRecording ? "red.600" : "gray.700"}
@@ -572,8 +611,11 @@ export default memo(WebRTCPlayer, (prevProps, nextProps) => {
     prevProps.camera?.dev === nextProps.camera?.dev &&
     prevProps.camera?.name === nextProps.camera?.name &&
     prevProps.camera?.streaming === nextProps.camera?.streaming &&
-    prevProps.camera?.active_settings?.resolution === nextProps.camera?.active_settings?.resolution &&
-    prevProps.camera?.active_settings?.fps === nextProps.camera?.active_settings?.fps &&
-    prevProps.camera?.active_settings?.bitrate === nextProps.camera?.active_settings?.bitrate
+    prevProps.camera?.active_settings?.resolution ===
+      nextProps.camera?.active_settings?.resolution &&
+    prevProps.camera?.active_settings?.fps ===
+      nextProps.camera?.active_settings?.fps &&
+    prevProps.camera?.active_settings?.bitrate ===
+      nextProps.camera?.active_settings?.bitrate
   );
 });

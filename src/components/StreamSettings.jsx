@@ -126,15 +126,17 @@ export const StreamSettings = ({
                 borderRadius="lg"
                 zIndex="popover"
               >
-                {fpsCollection.items.items?.map ? null : fpsCollection.items.map((item) => (
-                  <Select.Item
-                    item={item}
-                    key={item.value}
-                    _hover={{ bg: "nvr.bg.muted" }}
-                  >
-                    {item.label}
-                  </Select.Item>
-                ))}
+                {fpsCollection.items.items?.map
+                  ? null
+                  : fpsCollection.items.map((item) => (
+                      <Select.Item
+                        item={item}
+                        key={item.value}
+                        _hover={{ bg: "nvr.bg.muted" }}
+                      >
+                        {item.label}
+                      </Select.Item>
+                    ))}
               </Select.Content>
             </Select.Positioner>
           </Select.Root>
@@ -143,7 +145,7 @@ export const StreamSettings = ({
 
       <Box>
         <Text fontSize="xs" color="nvr.text.secondary" mb={1}>
-          Compresión de Red
+          Compresión de red
         </Text>
         <Select.Root
           size="sm"
