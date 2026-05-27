@@ -411,7 +411,7 @@ export const PtzJoystick = ({
               borderColor: "rgba(0,0,0,0.12)",
             }}
             onClick={() => adjustZoom("out")}
-            title="Alejar Zoom"
+            title="Alejar zoom"
             aria-label="Zoom Out"
             borderRadius="md"
             h={isFloating ? "18px" : "24px"}
@@ -475,7 +475,7 @@ export const PtzJoystick = ({
               borderColor: "rgba(0,0,0,0.12)",
             }}
             onClick={() => adjustZoom("in")}
-            title="Acercar Zoom"
+            title="Acercar zoom"
             aria-label="Zoom In"
             borderRadius="md"
             h={isFloating ? "18px" : "24px"}

@@ -356,11 +356,11 @@ const CameraControlCard = ({ camera }) => {
               />
             }
           >
-            {camera.streaming ? "Detener" : "Visualizar"}
+            {camera.streaming ? "Detener" : "Ver"}
           </Button>
 
-          <Popover.Root portalled={true} unmountOnExit={false}>
-            <Tooltip content="Configuración de transmisión" showArrow>
+          <Popover.Root portalled={true} unmountOnExit={false} positioning={{ placement: "right-start", gutter: 8 }}>
+            <Tooltip content="Ajustes de transmisión" showArrow>
               <span style={{ display: "inline-block" }}>
                 <Popover.Trigger asChild>
                   <IconButton
@@ -368,7 +368,7 @@ const CameraControlCard = ({ camera }) => {
                     variant="outline"
                     colorPalette="gray"
                     borderColor="nvr.border.default"
-                    aria-label="Configuración de transmisión"
+                    aria-label="Ajustes de transmisión"
                     transition="all 0.2s"
                     _hover={{
                       bg: "nvr.bg.muted",
@@ -399,7 +399,7 @@ const CameraControlCard = ({ camera }) => {
                       color="nvr.text.secondary"
                       mb={2}
                     >
-                      Ajustes de Transmisión
+                      Ajustes de transmisión
                     </Text>
                     <VStack align="stretch" gap={2}>
                       <StreamSettings
@@ -423,10 +423,11 @@ const CameraControlCard = ({ camera }) => {
           <UvcControlPanel
             cameraDev={camera.dev}
             buttonProps={{ disabled: isToggling }}
+            positioning={{ placement: "right-start", gutter: 8 }}
           />
 
           <Popover.Root portalled={true} unmountOnExit={true}>
-            <Tooltip content="Controles PTZ de cámara (UVC)" showArrow>
+            <Tooltip content="Controles PTZ" showArrow>
               <span style={{ display: "inline-block" }}>
                 <Popover.Trigger asChild>
                   <IconButton

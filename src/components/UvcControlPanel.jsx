@@ -25,6 +25,7 @@ export const UvcControlPanel = ({
   buttonProps = {},
   onOpenChange,
   portalContainer,
+  positioning,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [hwControls, setHwControls] = useState([]);
@@ -147,6 +148,7 @@ export const UvcControlPanel = ({
       onOpenChange={handleOpenChange}
       portalled={true}
       unmountOnExit={true}
+      positioning={positioning}
     >
       <Tooltip
         content={
@@ -189,7 +191,6 @@ export const UvcControlPanel = ({
       <Portal container={portalContainer}>
         <Popover.Positioner zIndex={1600}>
           <Popover.Content
-            key={isLoadingControls ? "loading" : "loaded"}
             bg="nvr.bg.modal"
             borderColor="nvr.border.default"
             shadow="lg"

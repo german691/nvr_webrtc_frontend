@@ -445,7 +445,7 @@ const Sidebar = () => {
         {isCollapsed ? (
           <VStack gap={2} align="center">
             <Tooltip
-              content="Estado FFmpeg"
+              content="Estado de Servidor"
               positioning={{ placement: "right" }}
               showArrow
             >
@@ -453,7 +453,7 @@ const Sidebar = () => {
                 size="sm"
                 variant="surface"
                 colorPalette="gray"
-                aria-label="Estado FFmpeg"
+                aria-label="Estado de Servidor"
                 onClick={handleOpenDebug}
               >
                 <Activity size={18} />
@@ -477,7 +477,7 @@ const Sidebar = () => {
                   </IconButton>
                 </Tooltip>
                 <Tooltip
-                  content="Gestión de Nodos Edge"
+                  content="Gestión de fuentes"
                   positioning={{ placement: "right" }}
                   showArrow
                 >
@@ -485,7 +485,7 @@ const Sidebar = () => {
                     size="sm"
                     variant="surface"
                     colorPalette="teal"
-                    aria-label="Gestión de Nodos Edge"
+                    aria-label="Gestión de fuentes"
                     onClick={() => setIsNodeManagementOpen(true)}
                   >
                     <Server size={18} />
@@ -523,7 +523,7 @@ const Sidebar = () => {
               gap={2}
             >
               <Activity size={16} />
-              <Text fontSize="xs">Estado FFmpeg</Text>
+              <Text fontSize="xs">Estado de Servidor</Text>
             </Button>
             {userRole === "admin" && (
               <>
@@ -538,12 +538,12 @@ const Sidebar = () => {
                     <Users size={16} />
                   </IconButton>
                 </Tooltip>
-                <Tooltip content="Gestión de Nodos Edge" showArrow>
+                <Tooltip content="Gestión de fuentes" showArrow>
                   <IconButton
                     size="sm"
                     variant="surface"
                     colorPalette="teal"
-                    aria-label="Gestión de Nodos Edge"
+                    aria-label="Gestión de fuentes"
                     onClick={() => setIsNodeManagementOpen(true)}
                   >
                     <Server size={16} />
