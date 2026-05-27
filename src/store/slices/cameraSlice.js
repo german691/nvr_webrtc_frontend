@@ -55,6 +55,7 @@ const cameraSlice = createSlice({
     isLoading: false,
     error: null,
     activePtzOverlays: {},
+    connectionMode: localStorage.getItem("nvr_connection_mode") || "local",
   },
   reducers: {
     togglePtzOverlay: (state, action) => {
@@ -64,6 +65,10 @@ const cameraSlice = createSlice({
     setPtzOverlay: (state, action) => {
       const { dev, open } = action.payload;
       state.activePtzOverlays[dev] = !!open;
+    },
+    setConnectionMode: (state, action) => {
+      state.connectionMode = action.payload;
+      localStorage.setItem("nvr_connection_mode", action.payload);
     },
   },
   extraReducers: (builder) => {
@@ -167,6 +172,6 @@ const cameraSlice = createSlice({
   },
 });
 
-export const { togglePtzOverlay, setPtzOverlay } = cameraSlice.actions;
+export const { togglePtzOverlay, setPtzOverlay, setConnectionMode } = cameraSlice.actions;
 
 export default cameraSlice.reducer;

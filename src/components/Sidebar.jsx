@@ -14,7 +14,7 @@ import {
   Portal,
 } from "@chakra-ui/react";
 import { useSelector, useDispatch } from "react-redux";
-import { toggleStream } from "../store/slices/cameraSlice";
+import { toggleStream, setConnectionMode } from "../store/slices/cameraSlice";
 import {
   ChevronLeft,
   Video,
@@ -24,6 +24,8 @@ import {
   Server,
   Loader2,
   AlertTriangle,
+  Home,
+  Globe,
 } from "lucide-react";
 import { BeatLoader } from "react-spinners";
 import CameraControlCard from "./CameraControlCard";
@@ -41,13 +43,18 @@ import { cameraApi } from "../api/camera.api.js";
 
 const Sidebar = () => {
   const dispatch = useDispatch();
-  const { list, isLoading, error } = useSelector((state) => state.cameras);
+  const { list, isLoading, error, connectionMode } = useSelector((state) => state.cameras);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isUserManagementOpen, setIsUserManagementOpen] = useState(false);
   const [isNodeManagementOpen, setIsNodeManagementOpen] = useState(false);
   const userRole = localStorage.getItem("nvr_role");
   const [isDebugMode, setIsDebugMode] = useState(false);
   const [togglingDevs, setTogglingDevs] = useState({});
+
+  const handleToggleConnectionMode = () => {
+    const newMode = connectionMode === "local" ? "remote" : "local";
+    dispatch(setConnectionMode(newMode));
+  };
 
   const handleToggleCamera = async (cam) => {
     setTogglingDevs((prev) => ({ ...prev, [cam.dev]: true }));
@@ -270,10 +277,63 @@ const Sidebar = () => {
           transition="opacity 0.25s ease-in-out, transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
           transform={isCollapsed ? "translateY(10px)" : "translateY(0)"}
         >
-          <VStack gap={2} align="stretch">
-            {list.map((cam) => (
-              <CameraControlCard key={cam.dev} camera={cam} />
-            ))}
+          <VStack gap={3} align="stretch">
+            {/* Selector de Tipo de Acceso / Conexión */}
+            <Box
+              px={1}
+              py={1}
+              borderRadius="xl"
+              bg="nvr.bg.muted"
+              borderWidth="1px"
+              borderColor="nvr.border.subtle"
+            >
+              <Flex gap={1}>
+                <Button
+                  flex={1}
+                  size="xs"
+                  bg={connectionMode === "local" ? "blue.600" : "transparent"}
+                  color={connectionMode === "local" ? "white" : "nvr.text.secondary"}
+                  _hover={{
+                    bg: connectionMode === "local" ? "blue.700" : "nvr.bg.hover",
+                    color: connectionMode === "local" ? "white" : "nvr.text.primary"
+                  }}
+                  borderRadius="lg"
+                  fontSize="2xs"
+                  fontWeight="bold"
+                  h="28px"
+                  gap={1.5}
+                  onClick={() => dispatch(setConnectionMode("local"))}
+                >
+                  <Home size={12} />
+                  Acceso Local
+                </Button>
+                <Button
+                  flex={1}
+                  size="xs"
+                  bg={connectionMode === "remote" ? "blue.600" : "transparent"}
+                  color={connectionMode === "remote" ? "white" : "nvr.text.secondary"}
+                  _hover={{
+                    bg: connectionMode === "remote" ? "blue.700" : "nvr.bg.hover",
+                    color: connectionMode === "remote" ? "white" : "nvr.text.primary"
+                  }}
+                  borderRadius="lg"
+                  fontSize="2xs"
+                  fontWeight="bold"
+                  h="28px"
+                  gap={1.5}
+                  onClick={() => dispatch(setConnectionMode("remote"))}
+                >
+                  <Globe size={12} />
+                  Acceso Remoto
+                </Button>
+              </Flex>
+            </Box>
+
+            <VStack gap={2} align="stretch">
+              {list.map((cam) => (
+                <CameraControlCard key={cam.dev} camera={cam} />
+              ))}
+            </VStack>
           </VStack>
         </Box>
 
@@ -454,6 +514,21 @@ const Sidebar = () => {
       >
         {isCollapsed ? (
           <VStack gap={2} align="center">
+            <Tooltip
+              content={connectionMode === "local" ? "Conexión: Local (Click para Remoto)" : "Conexión: Remoto (Click para Local)"}
+              positioning={{ placement: "right" }}
+              showArrow
+            >
+              <IconButton
+                size="sm"
+                variant="surface"
+                colorPalette="gray"
+                aria-label="Tipo de Conexión"
+                onClick={handleToggleConnectionMode}
+              >
+                {connectionMode === "local" ? <Home size={18} /> : <Globe size={18} />}
+              </IconButton>
+            </Tooltip>
             <Tooltip
               content="Estado de Servidor"
               positioning={{ placement: "right" }}

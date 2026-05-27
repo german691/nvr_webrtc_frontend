@@ -26,6 +26,7 @@ export const WebRTCPlayer = ({ url, camera }) => {
     (state) => state.cameras.activePtzOverlays,
   );
   const list = useSelector((state) => state.cameras.list);
+  const connectionMode = useSelector((state) => state.cameras.connectionMode);
   const realCameras = useMemo(() => list.filter((c) => !c.loading && !c.offline), [list]);
   const cameraIndex = useMemo(() => realCameras.findIndex((c) => c.dev === camera?.dev), [realCameras, camera?.dev]);
   const cameraNumber = cameraIndex !== -1 ? cameraIndex + 1 : null;
@@ -148,7 +149,12 @@ export const WebRTCPlayer = ({ url, camera }) => {
     let pc = null;
 
     const startWebRTC = async () => {
-      pc = new RTCPeerConnection();
+      // Inyectar STUN público de Google para travesía NAT remota
+      pc = new RTCPeerConnection({
+        iceServers: [
+          { urls: "stun:stun.l.google.com:19302" },
+        ],
+      });
       pcRef.current = pc;
 
       pc.addTransceiver("video", { direction: "recvonly" });
@@ -162,7 +168,25 @@ export const WebRTCPlayer = ({ url, camera }) => {
       const offer = await pc.createOffer();
       await pc.setLocalDescription(offer);
 
-      const whepUrl = url.endsWith("/whep") ? url : `${url}/whep`;
+      // Si el acceso remoto está activo, traducimos la llamada WHEP a través de Nginx
+      let finalUrl = url;
+      if (connectionMode === "remote") {
+        try {
+          const urlObj = new URL(url);
+          const ip = urlObj.hostname;
+          const path = urlObj.pathname.startsWith("/")
+            ? urlObj.pathname.substring(1)
+            : urlObj.pathname;
+          finalUrl = `${window.location.origin}/whep/${ip}/${path}`;
+        } catch (e) {
+          console.warn(
+            "Fallo al traducir la URL de señalización a remota:",
+            e,
+          );
+        }
+      }
+
+      const whepUrl = finalUrl.endsWith("/whep") ? finalUrl : `${finalUrl}/whep`;
 
       try {
         const response = await fetch(whepUrl, {
@@ -191,6 +215,7 @@ export const WebRTCPlayer = ({ url, camera }) => {
     };
   }, [
     url,
+    connectionMode,
     camera?.active_settings?.resolution,
     camera?.active_settings?.fps,
     camera?.active_settings?.bitrate,
