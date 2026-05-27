@@ -359,7 +359,7 @@ const CameraControlCard = ({ camera }) => {
             {camera.streaming ? "Detener" : "Ver"}
           </Button>
 
-          <Popover.Root portalled={true} unmountOnExit={false}>
+          <Popover.Root portalled={true} unmountOnExit={false} positioning={{ placement: "right-start", gutter: 8 }}>
             <Tooltip content="Ajustes de transmisión" showArrow>
               <span style={{ display: "inline-block" }}>
                 <Popover.Trigger asChild>
@@ -423,6 +423,7 @@ const CameraControlCard = ({ camera }) => {
           <UvcControlPanel
             cameraDev={camera.dev}
             buttonProps={{ disabled: isToggling }}
+            positioning={{ placement: "right-start", gutter: 8 }}
           />
 
           <Popover.Root portalled={true} unmountOnExit={true}>
