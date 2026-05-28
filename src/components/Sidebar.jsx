@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   VStack,
   Text,
@@ -50,6 +50,21 @@ const Sidebar = () => {
   const userRole = localStorage.getItem("nvr_role");
   const [isDebugMode, setIsDebugMode] = useState(false);
   const [togglingDevs, setTogglingDevs] = useState({});
+
+  // Lista ordenada alfabéticamente por Rótulo (con orden natural numérico)
+  const sortedList = useMemo(() => {
+    if (!list) return [];
+    const loadingCams = list.filter((c) => c.loading);
+    const offlineCams = list.filter((c) => c.offline);
+    const activeCams = list
+      .filter((c) => !c.loading && !c.offline)
+      .sort((a, b) => {
+        const nameA = a.name || "";
+        const nameB = b.name || "";
+        return nameA.localeCompare(nameB, undefined, { numeric: true, sensitivity: "base" });
+      });
+    return [...loadingCams, ...activeCams, ...offlineCams];
+  }, [list]);
 
   const handleToggleConnectionMode = () => {
     const newMode = connectionMode === "local" ? "remote" : "local";
@@ -330,7 +345,7 @@ const Sidebar = () => {
             </Box>
 
             <VStack gap={2} align="stretch">
-              {list.map((cam) => (
+              {sortedList.map((cam) => (
                 <CameraControlCard key={cam.dev} camera={cam} />
               ))}
             </VStack>
@@ -352,7 +367,7 @@ const Sidebar = () => {
           transform={isCollapsed ? "translateY(0)" : "translateY(-10px)"}
         >
           <VStack gap={2} w="full" align="center">
-            {list.map((cam) => {
+            {sortedList.map((cam) => {
               if (cam.loading) {
                 return (
                   <Tooltip
@@ -414,7 +429,9 @@ const Sidebar = () => {
               const isStreaming = cam.streaming;
               const isToggling = !!togglingDevs[cam.dev];
               
-              const realCameras = list.filter((c) => !c.loading && !c.offline);
+              const realCameras = list
+                .filter((c) => !c.loading && !c.offline)
+                .sort((a, b) => (a.name || "").localeCompare(b.name || "", undefined, { numeric: true, sensitivity: "base" }));
               const cameraIndex = realCameras.findIndex((c) => c.dev === cam.dev);
               const cameraNumber = cameraIndex !== -1 ? cameraIndex + 1 : null;
               const cameraNameText = cam.name || formatDeviceName(cam.dev);

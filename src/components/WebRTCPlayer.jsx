@@ -27,7 +27,11 @@ export const WebRTCPlayer = ({ url, camera }) => {
   );
   const list = useSelector((state) => state.cameras.list);
   const connectionMode = useSelector((state) => state.cameras.connectionMode);
-  const realCameras = useMemo(() => list.filter((c) => !c.loading && !c.offline), [list]);
+  const realCameras = useMemo(() => {
+    return list
+      .filter((c) => !c.loading && !c.offline)
+      .sort((a, b) => (a.name || "").localeCompare(b.name || "", undefined, { numeric: true, sensitivity: "base" }));
+  }, [list]);
   const cameraIndex = useMemo(() => realCameras.findIndex((c) => c.dev === camera?.dev), [realCameras, camera?.dev]);
   const cameraNumber = cameraIndex !== -1 ? cameraIndex + 1 : null;
 

@@ -129,6 +129,14 @@ export const cameraApi = {
     return response.data;
   },
 
+  saveCameraLabel: async (payload) => {
+    const response = await axios.post(
+      `${API_BASE_URL}/cameras/label`,
+      payload,
+    );
+    return response.data;
+  },
+
   getFfmpegDebug: async () => {
     const response = await axios.get(`${API_BASE_URL}/cameras/debug/ffmpeg`);
     return response.data;
