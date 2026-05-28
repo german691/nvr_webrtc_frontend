@@ -9,6 +9,7 @@ import {
   IconButton,
   Popover,
   Portal,
+  Input,
 } from "@chakra-ui/react";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -24,19 +25,62 @@ import {
 } from "../utils/camera.js";
 import { UvcControlPanel } from "./UvcControlPanel.jsx";
 import { StreamSettings } from "./StreamSettings.jsx";
-import { Settings, ChevronDown, ChevronUp, Gamepad2 } from "lucide-react";
+import { Settings, ChevronDown, ChevronUp, Gamepad2, Pencil, Check, X } from "lucide-react";
 import { BeatLoader } from "react-spinners";
 import { Tooltip } from "./ui/tooltip";
 import { PtzJoystick } from "./PtzJoystick.jsx";
+import { cameraApi } from "../api/camera.api.js";
 
 const CameraControlCard = ({ camera }) => {
   const dispatch = useDispatch();
   const list = useSelector((state) => state.cameras.list);
-  const realCameras = useMemo(() => list.filter((c) => !c.loading && !c.offline), [list]);
+  const realCameras = useMemo(() => {
+    return list
+      .filter((c) => !c.loading && !c.offline)
+      .sort((a, b) => (a.name || "").localeCompare(b.name || "", undefined, { numeric: true, sensitivity: "base" }));
+  }, [list]);
   const cameraIndex = useMemo(() => realCameras.findIndex((c) => c.dev === camera.dev), [realCameras, camera.dev]);
   const cameraNumber = cameraIndex !== -1 ? cameraIndex + 1 : null;
   const [isReconnecting, setIsReconnecting] = useState(false);
   const [isOfflineCardCollapsed, setIsOfflineCardCollapsed] = useState(false);
+
+  // Estados para renombrado y rotulado persistente
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [tempName, setTempName] = useState("");
+  const [isSavingName, setIsSavingName] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+
+  const handleStartRename = () => {
+    // Extraer el nombre limpio omitiendo el sufijo de IP o etiqueta del nodo en paréntesis
+    const cleanName = camera.name ? camera.name.replace(/ \(([^)]+)\)$/, "") : "";
+    setTempName(cleanName);
+    setIsEditingName(true);
+  };
+
+  const handleSaveRename = async () => {
+    if (!tempName.trim()) return;
+    setIsSavingName(true);
+    try {
+      const nodeIp = camera.dev.includes(":") ? camera.dev.split(":")[0] : null;
+      if (!nodeIp || !camera.persistent_path) {
+        throw new Error("Falta la dirección IP del nodo o la ruta de hardware de la cámara.");
+      }
+
+      await cameraApi.saveCameraLabel({
+        nodeIp,
+        persistentPath: camera.persistent_path,
+        customName: tempName.trim(),
+      });
+
+      // Recargar la lista de cámaras del nodo para aplicar el nombre inyectado al instante
+      dispatch(fetchCamerasForNode(nodeIp));
+      setIsEditingName(false);
+    } catch (error) {
+      console.error("Fallo al actualizar el rótulo de la cámara:", error);
+    } finally {
+      setIsSavingName(false);
+    }
+  };
 
   const sortedResolutions = useMemo(
     () => getSortedResolutions(camera.modes || []),
@@ -303,20 +347,84 @@ const CameraControlCard = ({ camera }) => {
       _hover={{
         borderColor: "nvr.border.interactive",
       }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
-      <HStack justify="space-between" mb={2} align="start" width="full">
-        <Text
-          fontWeight="bold"
-          fontSize="sm"
-          color="nvr.text.primary"
-          whiteSpace="normal"
-          wordBreak="break-word"
-          lineHeight="shorter"
-          flex="1"
-        >
-          {cameraNumber ? `#${cameraNumber} - ` : ""}{camera.name || formatDeviceName(camera.dev)}
-        </Text>
-      </HStack>
+      {isEditingName ? (
+        <HStack w="full" gap={1.5} mb={2}>
+          <Input
+            value={tempName}
+            onChange={(e) => setTempName(e.target.value)}
+            size="xs"
+            fontSize="xs"
+            h="24px"
+            bg="white"
+            borderRadius="md"
+            borderColor="nvr.border.default"
+            px={2}
+            autoFocus
+            disabled={isSavingName}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleSaveRename();
+              if (e.key === "Escape") setIsEditingName(false);
+            }}
+          />
+          <IconButton
+            size="2xs"
+            h="24px"
+            w="24px"
+            variant="solid"
+            colorPalette="blue"
+            aria-label="Confirmar nombre"
+            onClick={handleSaveRename}
+            loading={isSavingName}
+          >
+            <Check size={12} />
+          </IconButton>
+          <IconButton
+            size="2xs"
+            h="24px"
+            w="24px"
+            variant="outline"
+            colorPalette="gray"
+            aria-label="Cancelar"
+            onClick={() => setIsEditingName(false)}
+            disabled={isSavingName}
+          >
+            <X size={12} />
+          </IconButton>
+        </HStack>
+      ) : (
+        <HStack justify="space-between" mb={2} align="center" width="full" gap={2}>
+          <Text
+            fontWeight="bold"
+            fontSize="sm"
+            color="nvr.text.primary"
+            whiteSpace="normal"
+            wordBreak="break-word"
+            lineHeight="shorter"
+            flex="1"
+          >
+            {cameraNumber ? `#${cameraNumber} - ` : ""}{camera.name || formatDeviceName(camera.dev)}
+          </Text>
+          {camera.persistent_path && isHovered && (
+            <Tooltip content="Renombrar cámara" showArrow>
+              <IconButton
+                size="2xs"
+                h="18px"
+                w="18px"
+                variant="ghost"
+                color="nvr.text.secondary"
+                _hover={{ color: "blue.600", bg: "blackAlpha.100" }}
+                aria-label="Renombrar cámara"
+                onClick={handleStartRename}
+              >
+                <Pencil size={10} />
+              </IconButton>
+            </Tooltip>
+          )}
+        </HStack>
+      )}
 
       <VStack align="stretch" gap={2}>
         <Flex gap={2} align="center">
