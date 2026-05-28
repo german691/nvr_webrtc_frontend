@@ -44,9 +44,44 @@ export const WebRTCPlayer = ({ url, camera }) => {
   // Popover open states to manage controls visibility in fullscreen
   const [isStreamSettingsOpen, setIsStreamSettingsOpen] = useState(false);
   const [isUvcSettingsOpen, setIsUvcSettingsOpen] = useState(false);
+  const [isOrientationOpen, setIsOrientationOpen] = useState(false);
   const [isToggling, setIsToggling] = useState(false);
 
-  const isAnyPopoverOpen = isStreamSettingsOpen || isUvcSettingsOpen;
+  const isAnyPopoverOpen = isStreamSettingsOpen || isUvcSettingsOpen || isOrientationOpen;
+
+  // Estados locales para rotación y espejado digital instantáneo
+  const [rotate, setRotate] = useState(() => Number(localStorage.getItem(`nvr_rotate_${camera?.dev}`)) || 0);
+  const [flipH, setFlipH] = useState(() => localStorage.getItem(`nvr_flipH_${camera?.dev}`) === "true");
+  const [flipY, setFlipY] = useState(() => localStorage.getItem(`nvr_flipY_${camera?.dev}`) === "true");
+  const [prevDev, setPrevDev] = useState(camera?.dev);
+
+  if (camera?.dev !== prevDev) {
+    setPrevDev(camera?.dev);
+    setRotate(Number(localStorage.getItem(`nvr_rotate_${camera?.dev}`)) || 0);
+    setFlipH(localStorage.getItem(`nvr_flipH_${camera?.dev}`) === "true");
+    setFlipY(localStorage.getItem(`nvr_flipY_${camera?.dev}`) === "true");
+  }
+
+  const handleSetRotate = (deg) => {
+    setRotate(deg);
+    if (camera?.dev) {
+      localStorage.setItem(`nvr_rotate_${camera.dev}`, deg);
+    }
+  };
+
+  const handleSetFlipH = (val) => {
+    setFlipH(val);
+    if (camera?.dev) {
+      localStorage.setItem(`nvr_flipH_${camera.dev}`, val ? "true" : "false");
+    }
+  };
+
+  const handleSetFlipY = (val) => {
+    setFlipY(val);
+    if (camera?.dev) {
+      localStorage.setItem(`nvr_flipY_${camera.dev}`, val ? "true" : "false");
+    }
+  };
 
   // Extraer lógica de zoom/paneo y grabación local de evidencia en hooks especializados
   const {
@@ -272,16 +307,34 @@ export const WebRTCPlayer = ({ url, camera }) => {
     const video = videoRef.current;
 
     const canvas = document.createElement("canvas");
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
+    const isRotated90or270 = rotate === 90 || rotate === 270;
+    canvas.width = isRotated90or270 ? video.videoHeight : video.videoWidth;
+    canvas.height = isRotated90or270 ? video.videoWidth : video.videoHeight;
+    
     const ctx = canvas.getContext("2d");
+    if (!ctx) return;
 
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    // Desplazar origen al centro
+    ctx.translate(canvas.width / 2, canvas.height / 2);
+    
+    // Rotar e invertir
+    ctx.rotate((rotate * Math.PI) / 180);
+    ctx.scale(flipH ? -1 : 1, flipY ? -1 : 1);
+
+    // Dibujar de vuelta centrado
+    ctx.drawImage(
+      video,
+      -video.videoWidth / 2,
+      -video.videoHeight / 2,
+      video.videoWidth,
+      video.videoHeight
+    );
+
     const dataUrl = canvas.toDataURL("image/png");
 
     const a = document.createElement("a");
     a.href = dataUrl;
-    a.download = `Captura_NVR_${new Date().getTime()}.png`;
+    a.download = `Captura_NVR_${camera?.name || camera?.dev || "cam"}_${new Date().getTime()}.png`;
     a.click();
   };
 
@@ -371,44 +424,62 @@ export const WebRTCPlayer = ({ url, camera }) => {
       cursor={scale > 1 ? (isDragging ? "grabbing" : "grab") : "default"}
     >
       {url.startsWith("mock://") ? (
-        <Center
+        <Box
           position="absolute"
           top={0}
           left={0}
           right={0}
           bottom={0}
-          bg="black"
-          userSelect="none"
           style={{
+            width: "100%",
+            height: "100%",
             transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
             transition: isDragging ? "none" : "transform 0.2s ease-out",
           }}
         >
-          <Text
-            fontSize="sm"
-            fontWeight="bold"
-            color="whiteAlpha.300"
-            fontFamily="mono"
-            letterSpacing="wide"
+          <Center
+            w="100%"
+            h="100%"
+            bg="black"
+            userSelect="none"
+            style={{
+              transform: `rotate(${rotate}deg) scaleX(${flipH ? -1 : 1}) scaleY(${flipY ? -1 : 1})`,
+            }}
           >
-            {cameraNumber ? `#${cameraNumber} - ` : ""}{camera?.name || camera?.dev}
-          </Text>
-        </Center>
+            <Text
+              fontSize="sm"
+              fontWeight="bold"
+              color="whiteAlpha.300"
+              fontFamily="mono"
+              letterSpacing="wide"
+            >
+              {cameraNumber ? `#${cameraNumber} - ` : ""}{camera?.name || camera?.dev}
+            </Text>
+          </Center>
+        </Box>
       ) : (
-        <video
-          ref={videoRef}
-          autoPlay
-          playsInline
-          muted
+        <Box
           style={{
             width: "100%",
             height: "100%",
-            objectFit: "contain",
-            backgroundColor: "#000",
             transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
             transition: isDragging ? "none" : "transform 0.2s ease-out",
           }}
-        />
+        >
+          <video
+            ref={videoRef}
+            autoPlay
+            playsInline
+            muted
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "contain",
+              backgroundColor: "#000",
+              transform: `rotate(${rotate}deg) scaleX(${flipH ? -1 : 1}) scaleY(${flipY ? -1 : 1})`,
+            }}
+          />
+        </Box>
       )}
 
       {isPtzOverlayOpen && camera && (
@@ -431,6 +502,8 @@ export const WebRTCPlayer = ({ url, camera }) => {
         setIsStreamSettingsOpen={setIsStreamSettingsOpen}
         isUvcSettingsOpen={isUvcSettingsOpen}
         setIsUvcSettingsOpen={setIsUvcSettingsOpen}
+        isOrientationOpen={isOrientationOpen}
+        setIsOrientationOpen={setIsOrientationOpen}
         isPtzOverlayOpen={isPtzOverlayOpen}
         handleScreenshot={handleScreenshot}
         isRecording={isRecording}
@@ -450,6 +523,12 @@ export const WebRTCPlayer = ({ url, camera }) => {
         handleSetFps={handleSetFps}
         handleSetBitrate={handleSetBitrate}
         showControls={showControls}
+        rotate={rotate}
+        flipH={flipH}
+        flipY={flipY}
+        handleSetRotate={handleSetRotate}
+        handleSetFlipH={handleSetFlipH}
+        handleSetFlipY={handleSetFlipY}
         onMouseEnter={() => {
           if (isFullscreen) {
             setShowControls(true);

@@ -20,6 +20,9 @@ import {
   Gamepad2,
   Minus,
   Plus,
+  RotateCw,
+  FlipHorizontal,
+  FlipVertical,
 } from "lucide-react";
 import { useDispatch } from "react-redux";
 import { togglePtzOverlay } from "../store/slices/cameraSlice";
@@ -40,6 +43,8 @@ export const CompactPlayerControls = ({
   isStreamSettingsOpen,
   setIsStreamSettingsOpen,
   setIsUvcSettingsOpen,
+  isOrientationOpen,
+  setIsOrientationOpen,
   isPtzOverlayOpen,
   handleScreenshot,
   isRecording,
@@ -59,6 +64,12 @@ export const CompactPlayerControls = ({
   handleSetFps,
   handleSetBitrate,
   showControls,
+  rotate,
+  flipH,
+  flipY,
+  handleSetRotate,
+  handleSetFlipH,
+  handleSetFlipY,
   onMouseEnter,
   onMouseLeave,
 }) => {
@@ -254,6 +265,142 @@ export const CompactPlayerControls = ({
           </Popover.Positioner>
         </Portal>
       </Popover.Root>
+
+      {/* 4b. ROTACIÓN Y ESPEJO DIGITAL (ORIENTACIÓN) */}
+      {camera && (
+        <Popover.Root
+          key={`orientation-settings-${isFullscreen}`}
+          open={isOrientationOpen}
+          onOpenChange={(details) => setIsOrientationOpen(details.open)}
+          portalled={true}
+          unmountOnExit={false}
+        >
+          <PlayerButton
+            tooltip="Rotación y Espejo"
+            ariaLabel="Rotación y Espejo"
+            color={(rotate !== 0 || flipH || flipY) ? "blue.600" : "gray.700"}
+            bg={(rotate !== 0 || flipH || flipY) ? "rgba(37, 99, 235, 0.08)" : "transparent"}
+          >
+            <Popover.Trigger asChild>
+              <RotateCw size={14} />
+            </Popover.Trigger>
+          </PlayerButton>
+          <Portal container={isFullscreen ? containerRef : undefined}>
+            <Popover.Positioner zIndex={1600}>
+              <Popover.Content
+                bg="white"
+                borderColor="gray.200"
+                shadow="lg"
+                p={3}
+                borderRadius="xl"
+                zIndex="popover"
+                w="210px"
+                onWheel={(e) => e.stopPropagation()}
+                onMouseDown={(e) => e.stopPropagation()}
+                onMouseMove={(e) => e.stopPropagation()}
+                onMouseUp={(e) => e.stopPropagation()}
+                onDoubleClick={(e) => e.stopPropagation()}
+              >
+                <Popover.Arrow />
+                <Popover.Body p={0}>
+                  <Text
+                    fontSize="xs"
+                    fontWeight="bold"
+                    color="gray.700"
+                    mb={3}
+                    textAlign="left"
+                  >
+                    Orientación Digital
+                  </Text>
+                  
+                  <VStack gap={3} align="stretch">
+                    {/* Rotación */}
+                    <VStack align="stretch" gap={1.5}>
+                      <Text fontSize="2xs" fontWeight="semibold" color="gray.500" textAlign="left">
+                        Rotación
+                      </Text>
+                      <HStack gap={1} width="100%">
+                        {[0, 90, 180, 270].map((deg) => (
+                          <Button
+                            key={deg}
+                            size="xs"
+                            flex={1}
+                            variant={rotate === deg ? "solid" : "outline"}
+                            colorPalette={rotate === deg ? "blue" : "gray"}
+                            onClick={() => handleSetRotate(deg)}
+                            fontSize="3xs"
+                            p={0}
+                            h="24px"
+                          >
+                            {deg}°
+                          </Button>
+                        ))}
+                      </HStack>
+                    </VStack>
+
+                    {/* Volteo / Mirror */}
+                    <VStack align="stretch" gap={1.5}>
+                      <Text fontSize="2xs" fontWeight="semibold" color="gray.500" textAlign="left">
+                        Espejo (Mirror)
+                      </Text>
+                      <HStack gap={2}>
+                        <Button
+                          size="xs"
+                          flex={1}
+                          variant={flipH ? "solid" : "outline"}
+                          colorPalette={flipH ? "blue" : "gray"}
+                          onClick={() => handleSetFlipH(!flipH)}
+                          h="24px"
+                          px={1.5}
+                        >
+                          <HStack gap={1} justify="center">
+                            <FlipHorizontal size={11} />
+                            <Text fontSize="3xs">H-Flip</Text>
+                          </HStack>
+                        </Button>
+                        <Button
+                          size="xs"
+                          flex={1}
+                          variant={flipY ? "solid" : "outline"}
+                          colorPalette={flipY ? "blue" : "gray"}
+                          onClick={() => handleSetFlipY(!flipY)}
+                          h="24px"
+                          px={1.5}
+                        >
+                          <HStack gap={1} justify="center">
+                            <FlipVertical size={11} />
+                            <Text fontSize="3xs">V-Flip</Text>
+                          </HStack>
+                        </Button>
+                      </HStack>
+                    </VStack>
+
+                    {/* Restablecer */}
+                    {(rotate !== 0 || flipH || flipY) && (
+                      <Button
+                        size="xs"
+                        variant="ghost"
+                        colorPalette="red"
+                        onClick={() => {
+                          handleSetRotate(0);
+                          handleSetFlipH(false);
+                          handleSetFlipY(false);
+                        }}
+                        fontSize="2xs"
+                        fontWeight="semibold"
+                        h="24px"
+                        mt={1}
+                      >
+                        Restablecer
+                      </Button>
+                    )}
+                  </VStack>
+                </Popover.Body>
+              </Popover.Content>
+            </Popover.Positioner>
+          </Portal>
+        </Popover.Root>
+      )}
 
       {/* 5. CAPTURA Y GRABACIÓN AGRUPADAS */}
       {camera && (
