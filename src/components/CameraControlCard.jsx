@@ -42,8 +42,12 @@ const CameraControlCard = ({ camera }) => {
 
   const realCameras = useMemo(() => {
     return list
-      .filter((c) => !c.loading && !c.offline)
-      .sort((a, b) => (a.name || "").localeCompare(b.name || "", undefined, { numeric: true, sensitivity: "base" }));
+      .filter((c) => c.dev && !c.dev.startsWith("loading:") && !c.dev.startsWith("offline:"))
+      .sort((a, b) => {
+        const ipCompare = (a.nodeIp || "").localeCompare(b.nodeIp || "");
+        if (ipCompare !== 0) return ipCompare;
+        return (a.dev || "").localeCompare(b.dev || "");
+      });
   }, [list]);
   const cameraIndex = useMemo(() => realCameras.findIndex((c) => c.dev === camera.dev), [realCameras, camera.dev]);
   const cameraNumber = cameraIndex !== -1 ? cameraIndex + 1 : null;
@@ -195,8 +199,8 @@ const CameraControlCard = ({ camera }) => {
         {!isOfflineCardCollapsed && (
           <>
             <Text fontSize="2xs" color="nvr.text.secondary" lineHeight="tall">
-              No se pudo establecer conexión SSH con este nodo. Verifique si el
-              equipo está encendido y conectada a la red local.
+              No se pudo establecer conexión WebSocket con el agente de este nodo.
+              Verifique si el equipo está encendido y conectado a la red local.
             </Text>
             {camera.error && (
               <Text

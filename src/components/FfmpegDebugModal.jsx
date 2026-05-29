@@ -238,7 +238,13 @@ export const FfmpegDebugModal = ({ isOpen, onClose, isClosing }) => {
             {!isDebuggingLoading && !debugError && debugStreams.length > 0 && (
               <VStack gap={4} align="stretch">
                 {debugStreams.map((stream) => {
-                  const realCameras = list.filter((c) => !c.loading && !c.offline);
+                  const realCameras = list
+                    .filter((c) => c.dev && !c.dev.startsWith("loading:") && !c.dev.startsWith("offline:"))
+                    .sort((a, b) => {
+                      const ipCompare = (a.nodeIp || "").localeCompare(b.nodeIp || "");
+                      if (ipCompare !== 0) return ipCompare;
+                      return (a.dev || "").localeCompare(b.dev || "");
+                    });
                   const cameraIndex = realCameras.findIndex((c) => c.dev === stream.device);
                   const cameraNumber = cameraIndex !== -1 ? cameraIndex + 1 : null;
                   

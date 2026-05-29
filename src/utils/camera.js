@@ -1,8 +1,11 @@
 export const BITRATES = [
-  { label: "Reducido (1 Mbps)", value: "1M" },
-  { label: "Fluido Estándar (2 Mbps)", value: "2M" },
+  { label: "Ahorro de Datos (1 Mbps)", value: "1M" },
+  { label: "Estándar (2 Mbps)", value: "2M" },
   { label: "Alta Definición (4 Mbps)", value: "4M" },
-  { label: "Máxima Quirúrgica (10 Mbps)", value: "10M" },
+  { label: "Detalle Quirúrgico Estándar (10 Mbps)", value: "10M" },
+  { label: "Detalle Quirúrgico Alto (20 Mbps)", value: "20M" },
+  { label: "Detalle Quirúrgico Máximo (30 Mbps)", value: "30M" },
+  { label: "Sin Compresión (50 Mbps)", value: "50M" },
 ];
 
 export const formatDeviceName = (devPath) => {

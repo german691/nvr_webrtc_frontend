@@ -51,7 +51,7 @@ const Sidebar = () => {
   const [isDebugMode, setIsDebugMode] = useState(false);
   const [togglingDevs, setTogglingDevs] = useState({});
 
-  // Lista ordenada alfabéticamente por Rótulo (con orden natural numérico)
+  // Lista ordenada primero por Nodo (nodeIp) y luego por número secuencial de cámara
   const sortedList = useMemo(() => {
     if (!list) return [];
     const loadingCams = list.filter((c) => c.loading);
@@ -59,9 +59,12 @@ const Sidebar = () => {
     const activeCams = list
       .filter((c) => !c.loading && !c.offline)
       .sort((a, b) => {
-        const nameA = a.name || "";
-        const nameB = b.name || "";
-        return nameA.localeCompare(nameB, undefined, { numeric: true, sensitivity: "base" });
+        // 1. Ordenar por IP de nodo (mini-PC)
+        const ipCompare = (a.nodeIp || "").localeCompare(b.nodeIp || "");
+        if (ipCompare !== 0) return ipCompare;
+        
+        // 2. Ordenar de forma determinista por la ruta física del dispositivo
+        return (a.dev || "").localeCompare(b.dev || "");
       });
     return [...loadingCams, ...activeCams, ...offlineCams];
   }, [list]);
@@ -436,8 +439,12 @@ const Sidebar = () => {
               const isToggling = !!togglingDevs[cam.dev];
               
               const realCameras = list
-                .filter((c) => !c.loading && !c.offline)
-                .sort((a, b) => (a.name || "").localeCompare(b.name || "", undefined, { numeric: true, sensitivity: "base" }));
+                .filter((c) => c.dev && !c.dev.startsWith("loading:") && !c.dev.startsWith("offline:"))
+                .sort((a, b) => {
+                  const ipCompare = (a.nodeIp || "").localeCompare(b.nodeIp || "");
+                  if (ipCompare !== 0) return ipCompare;
+                  return (a.dev || "").localeCompare(b.dev || "");
+                });
               const cameraIndex = realCameras.findIndex((c) => c.dev === cam.dev);
               const cameraNumber = cameraIndex !== -1 ? cameraIndex + 1 : null;
               const cameraNameText = cam.name || formatDeviceName(cam.dev);

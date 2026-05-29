@@ -137,7 +137,13 @@ export const VideoWall = ({ onOpenLayoutEditor }) => {
         let visualIdx = orderedCameras.findIndex((c) => c.dev === cam.dev);
         if (visualIdx === -1) visualIdx = 0;
 
-        const realCameras = list.filter((c) => !c.loading && !c.offline);
+        const realCameras = list
+          .filter((c) => c.dev && !c.dev.startsWith("loading:") && !c.dev.startsWith("offline:"))
+          .sort((a, b) => {
+            const ipCompare = (a.nodeIp || "").localeCompare(b.nodeIp || "");
+            if (ipCompare !== 0) return ipCompare;
+            return (a.dev || "").localeCompare(b.dev || "");
+          });
         const cameraIndex = realCameras.findIndex((c) => c.dev === cam.dev);
         const cameraNumber = cameraIndex !== -1 ? cameraIndex + 1 : null;
 

@@ -413,7 +413,6 @@ export const UvcControlPanel = ({
                         handleLocalChange(focusAutoCtrl.name, 1);
                         handleImmediateCommit(focusAutoCtrl.name, 1);
                       }}
-                      px="4"
                       fontSize="2xs"
                       fontWeight="bold"
                       flexGrow="1"
@@ -433,7 +432,10 @@ export const UvcControlPanel = ({
                     onValueChange={async (details) => {
                       const val = details.valueAsNumber;
                       if (!isNaN(val)) {
-                        if (focusAutoCtrl && Number(focusAutoCtrl.value) === 1) {
+                        if (
+                          focusAutoCtrl &&
+                          Number(focusAutoCtrl.value) === 1
+                        ) {
                           handleLocalChange(focusAutoCtrl.name, 0);
                           await handleImmediateCommit(focusAutoCtrl.name, 0);
                         }
@@ -460,7 +462,10 @@ export const UvcControlPanel = ({
                         if (val < minVal) val = minVal;
                         if (val > maxVal) val = maxVal;
 
-                        if (focusAutoCtrl && Number(focusAutoCtrl.value) === 1) {
+                        if (
+                          focusAutoCtrl &&
+                          Number(focusAutoCtrl.value) === 1
+                        ) {
                           handleLocalChange(focusAutoCtrl.name, 0);
                           await handleImmediateCommit(focusAutoCtrl.name, 0);
                         }

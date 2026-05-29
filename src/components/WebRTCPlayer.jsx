@@ -31,8 +31,12 @@ export const WebRTCPlayer = ({ url, camera }) => {
   const connectionMode = useSelector((state) => state.cameras.connectionMode);
   const realCameras = useMemo(() => {
     return list
-      .filter((c) => !c.loading && !c.offline)
-      .sort((a, b) => (a.name || "").localeCompare(b.name || "", undefined, { numeric: true, sensitivity: "base" }));
+      .filter((c) => c.dev && !c.dev.startsWith("loading:") && !c.dev.startsWith("offline:"))
+      .sort((a, b) => {
+        const ipCompare = (a.nodeIp || "").localeCompare(b.nodeIp || "");
+        if (ipCompare !== 0) return ipCompare;
+        return (a.dev || "").localeCompare(b.dev || "");
+      });
   }, [list]);
   const cameraIndex = useMemo(() => realCameras.findIndex((c) => c.dev === camera?.dev), [realCameras, camera?.dev]);
   const cameraNumber = cameraIndex !== -1 ? cameraIndex + 1 : null;
