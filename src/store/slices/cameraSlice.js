@@ -55,7 +55,9 @@ const cameraSlice = createSlice({
     isLoading: false,
     error: null,
     activePtzOverlays: {},
+    activeUvcSettingsDev: null,
     connectionMode: localStorage.getItem("nvr_connection_mode") || "local",
+    nodeStatuses: {},
   },
   reducers: {
     togglePtzOverlay: (state, action) => {
@@ -66,9 +68,38 @@ const cameraSlice = createSlice({
       const { dev, open } = action.payload;
       state.activePtzOverlays[dev] = !!open;
     },
+    setActiveUvcSettingsDev: (state, action) => {
+      state.activeUvcSettingsDev = action.payload;
+    },
     setConnectionMode: (state, action) => {
       state.connectionMode = action.payload;
       localStorage.setItem("nvr_connection_mode", action.payload);
+    },
+    updateNodeStatus: (state, action) => {
+      const { nodeIp, status } = action.payload;
+      state.nodeStatuses[nodeIp] = status;
+      if (status === "offline") {
+        // Detener transmisión localmente si el nodo se desconecta
+        state.list.forEach((cam) => {
+          if (cam.nodeIp === nodeIp) {
+            cam.streaming = false;
+            cam.webrtc_url = null;
+          }
+        });
+      }
+    },
+    setInitialNodeStatuses: (state, action) => {
+      state.nodeStatuses = action.payload;
+      Object.entries(action.payload).forEach(([nodeIp, status]) => {
+        if (status === "offline") {
+          state.list.forEach((cam) => {
+            if (cam.nodeIp === nodeIp) {
+              cam.streaming = false;
+              cam.webrtc_url = null;
+            }
+          });
+        }
+      });
     },
   },
   extraReducers: (builder) => {
@@ -172,6 +203,13 @@ const cameraSlice = createSlice({
   },
 });
 
-export const { togglePtzOverlay, setPtzOverlay, setConnectionMode } = cameraSlice.actions;
+export const {
+  togglePtzOverlay,
+  setPtzOverlay,
+  setActiveUvcSettingsDev,
+  setConnectionMode,
+  updateNodeStatus,
+  setInitialNodeStatuses,
+} = cameraSlice.actions;
 
 export default cameraSlice.reducer;

@@ -23,8 +23,6 @@ import {
   CheckCircle,
   Plus,
   ArrowLeft,
-  Eye,
-  EyeOff,
 } from "lucide-react";
 import { cameraApi } from "../api/camera.api";
 
@@ -39,11 +37,7 @@ export const NodeManagementModal = ({ isOpen, onClose }) => {
   const [editingNode, setEditingNode] = useState(null);
 
   const [ip, setIp] = useState("");
-  const [port, setPort] = useState("22");
-  const [username, setUsername] = useState("root");
-  const [password, setPassword] = useState("");
   const [label, setLabel] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
 
   // animación
   const [isClosing, setIsClosing] = useState(false);
@@ -77,11 +71,7 @@ export const NodeManagementModal = ({ isOpen, onClose }) => {
 
   const resetForm = () => {
     setIp("");
-    setPort("22");
-    setUsername("root");
-    setPassword("");
     setLabel("");
-    setShowPassword(false);
     setIsCreating(false);
     setEditingNode(null);
     setError(null);
@@ -130,9 +120,9 @@ export const NodeManagementModal = ({ isOpen, onClose }) => {
 
   const handleCreateNode = async (e) => {
     e.preventDefault();
-    if (!ip.trim() || !username.trim() || !password.trim()) {
+    if (!ip.trim()) {
       showNotification(
-        "Por favor, complete todos los campos obligatorios.",
+        "Por favor, ingrese la dirección IP.",
         "error",
       );
       return;
@@ -144,9 +134,6 @@ export const NodeManagementModal = ({ isOpen, onClose }) => {
     try {
       const response = await cameraApi.createNode({
         ip: ip.trim(),
-        port: parseInt(port, 10) || 22,
-        username: username.trim(),
-        password,
         label: label.trim() || null,
       });
 
@@ -169,9 +156,9 @@ export const NodeManagementModal = ({ isOpen, onClose }) => {
 
   const handleUpdateNode = async (e) => {
     e.preventDefault();
-    if (!ip.trim() || !username.trim() || !password.trim()) {
+    if (!ip.trim()) {
       showNotification(
-        "Por favor, complete todos los campos obligatorios.",
+        "Por favor, ingrese la dirección IP.",
         "error",
       );
       return;
@@ -183,9 +170,6 @@ export const NodeManagementModal = ({ isOpen, onClose }) => {
     try {
       const response = await cameraApi.updateNode(editingNode.id, {
         ip: ip.trim(),
-        port: parseInt(port, 10) || 22,
-        username: username.trim(),
-        password,
         label: label.trim() || null,
       });
 
@@ -233,9 +217,6 @@ export const NodeManagementModal = ({ isOpen, onClose }) => {
     resetForm();
     setEditingNode(node);
     setIp(node.ip);
-    setPort(String(node.port));
-    setUsername(node.username);
-    setPassword(node.password);
     setLabel(node.label || "");
   };
 
@@ -316,7 +297,7 @@ export const NodeManagementModal = ({ isOpen, onClose }) => {
                   {isCreating &&
                     "Registra un servidor adicional para capturar cámaras USB"}
                   {editingNode &&
-                    "Modifica los parámetros de red y credenciales SSH"}
+                    "Modifica los parámetros de red del nodo"}
                   {!isFormOpen &&
                     "Administra los servidores de captura y streaming WebRTC"}
                 </Text>
@@ -403,56 +384,29 @@ export const NodeManagementModal = ({ isOpen, onClose }) => {
               /* FORMULARIO DE ACCIONES */
               <form onSubmit={isCreating ? handleCreateNode : handleUpdateNode}>
                 <VStack gap={4} align="stretch" p={1}>
-                  <HStack gap={3} align="start">
-                    <Box flex="2">
-                      <Text
-                        fontSize="2xs"
-                        fontWeight="bold"
-                        color="nvr.text.secondary"
-                        mb={1.5}
-                        textTransform="uppercase"
-                      >
-                        Dirección IP / Hostname *
-                      </Text>
-                      <Input
-                        placeholder="Ej. 192.168.1.103"
-                        value={ip}
-                        onChange={(e) => setIp(e.target.value)}
-                        h="38px"
-                        borderRadius="lg"
-                        bg="nvr.bg.card"
-                        borderColor="nvr.border.interactive"
-                        fontSize="sm"
-                        disabled={actionLoading}
-                        required
-                      />
-                    </Box>
-
-                    <Box flex="1">
-                      <Text
-                        fontSize="2xs"
-                        fontWeight="bold"
-                        color="nvr.text.secondary"
-                        mb={1.5}
-                        textTransform="uppercase"
-                      >
-                        Puerto SSH *
-                      </Text>
-                      <Input
-                        placeholder="22"
-                        type="number"
-                        value={port}
-                        onChange={(e) => setPort(e.target.value)}
-                        h="38px"
-                        borderRadius="lg"
-                        bg="nvr.bg.card"
-                        borderColor="nvr.border.interactive"
-                        fontSize="sm"
-                        disabled={actionLoading}
-                        required
-                      />
-                    </Box>
-                  </HStack>
+                  <Box>
+                    <Text
+                      fontSize="2xs"
+                      fontWeight="bold"
+                      color="nvr.text.secondary"
+                      mb={1.5}
+                      textTransform="uppercase"
+                    >
+                      Dirección IP / Hostname *
+                    </Text>
+                    <Input
+                      placeholder="Ej. 192.168.1.103"
+                      value={ip}
+                      onChange={(e) => setIp(e.target.value)}
+                      h="38px"
+                      borderRadius="lg"
+                      bg="nvr.bg.card"
+                      borderColor="nvr.border.interactive"
+                      fontSize="sm"
+                      disabled={actionLoading}
+                      required
+                    />
+                  </Box>
 
                   <Box>
                     <Text
@@ -476,79 +430,6 @@ export const NodeManagementModal = ({ isOpen, onClose }) => {
                       disabled={actionLoading}
                     />
                   </Box>
-
-                  <HStack gap={3} align="start">
-                    <Box flex="1">
-                      <Text
-                        fontSize="2xs"
-                        fontWeight="bold"
-                        color="nvr.text.secondary"
-                        mb={1.5}
-                        textTransform="uppercase"
-                      >
-                        Usuario SSH *
-                      </Text>
-                      <Input
-                        placeholder="root"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                        h="38px"
-                        borderRadius="lg"
-                        bg="nvr.bg.card"
-                        borderColor="nvr.border.interactive"
-                        fontSize="sm"
-                        disabled={actionLoading}
-                        required
-                      />
-                    </Box>
-
-                    <Box flex="1">
-                      <Text
-                        fontSize="2xs"
-                        fontWeight="bold"
-                        color="nvr.text.secondary"
-                        mb={1.5}
-                        textTransform="uppercase"
-                      >
-                        Contraseña SSH *
-                      </Text>
-                      <Flex position="relative" align="center">
-                        <Input
-                          type={showPassword ? "text" : "password"}
-                          placeholder="Contraseña del nodo"
-                          value={password}
-                          onChange={(e) => setPassword(e.target.value)}
-                          h="38px"
-                          borderRadius="lg"
-                          bg="nvr.bg.card"
-                          borderColor="nvr.border.interactive"
-                          fontSize="sm"
-                          disabled={actionLoading}
-                          pr="40px"
-                          required
-                        />
-                        <IconButton
-                          type="button"
-                          position="absolute"
-                          right="2"
-                          variant="ghost"
-                          h="28px"
-                          w="28px"
-                          p={0}
-                          minW="auto"
-                          color="gray.400"
-                          onClick={() => setShowPassword(!showPassword)}
-                          disabled={actionLoading}
-                        >
-                          {showPassword ? (
-                            <EyeOff size={14} />
-                          ) : (
-                            <Eye size={14} />
-                          )}
-                        </IconButton>
-                      </Flex>
-                    </Box>
-                  </HStack>
 
                   <HStack gap={3} pt={2}>
                     <Button
@@ -662,16 +543,7 @@ export const NodeManagementModal = ({ isOpen, onClose }) => {
                                   borderRadius="md"
                                   px={1.5}
                                 >
-                                  {node.ip}:{node.port}
-                                </Badge>
-                                <Badge
-                                  colorPalette="gray"
-                                  variant="subtle"
-                                  fontSize="2xs"
-                                  borderRadius="md"
-                                  px={1.5}
-                                >
-                                  SSH: {node.username}
+                                  IP: {node.ip}
                                 </Badge>
                               </HStack>
                             </VStack>

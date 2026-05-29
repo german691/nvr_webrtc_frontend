@@ -7,6 +7,7 @@ import VideoWall from "./components/VideoWall";
 import Login from "./components/Login";
 import ChangePassword from "./components/ChangePassword";
 import VideoWallEditor from "./components/VideoWallEditor";
+import { useWebSocket } from "./hooks/useWebSocket";
 
 function App() {
   const dispatch = useDispatch();
@@ -17,6 +18,9 @@ function App() {
     () => localStorage.getItem("nvr_needs_password_change") === "true"
   );
   const [currentView, setCurrentView] = useState("videowall");
+
+  // Iniciar conexión WebSocket persistente en tiempo real cuando esté autenticado
+  useWebSocket(isAuthenticated && !needsPasswordChange);
 
   useEffect(() => {
     if (isAuthenticated && !needsPasswordChange) {

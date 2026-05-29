@@ -43,7 +43,7 @@ import { cameraApi } from "../api/camera.api.js";
 
 const Sidebar = () => {
   const dispatch = useDispatch();
-  const { list, isLoading, error, connectionMode } = useSelector((state) => state.cameras);
+  const { list, isLoading, error, connectionMode, nodeStatuses } = useSelector((state) => state.cameras);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isUserManagementOpen, setIsUserManagementOpen] = useState(false);
   const [isNodeManagementOpen, setIsNodeManagementOpen] = useState(false);
@@ -399,11 +399,16 @@ const Sidebar = () => {
                 );
               }
 
-              if (cam.offline) {
+              const isNodeOffline = nodeStatuses && cam.nodeIp && nodeStatuses[cam.nodeIp] === "offline";
+              
+              if (cam.offline || isNodeOffline) {
+                const labelText = cam.offline 
+                  ? cam.name 
+                  : `${cam.name || formatDeviceName(cam.dev)} - Mini-PC fuera de línea`;
                 return (
                   <Tooltip
                     key={cam.dev}
-                    content={cam.name}
+                    content={labelText}
                     positioning={{ placement: "right" }}
                     showArrow
                   >
@@ -419,6 +424,7 @@ const Sidebar = () => {
                       justifyContent="center"
                       minW="38px"
                       minH="38px"
+                      className="pulse-offline-icon"
                     >
                       <AlertTriangle size={18} />
                     </Box>
