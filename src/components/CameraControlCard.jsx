@@ -34,6 +34,12 @@ import { cameraApi } from "../api/camera.api.js";
 const CameraControlCard = ({ camera }) => {
   const dispatch = useDispatch();
   const list = useSelector((state) => state.cameras.list);
+  const nodeStatuses = useSelector((state) => state.cameras.nodeStatuses);
+  
+  const isNodeOffline = useMemo(() => {
+    return nodeStatuses && camera.nodeIp && nodeStatuses[camera.nodeIp] === "offline";
+  }, [nodeStatuses, camera.nodeIp]);
+
   const realCameras = useMemo(() => {
     return list
       .filter((c) => !c.loading && !c.offline)
@@ -48,7 +54,6 @@ const CameraControlCard = ({ camera }) => {
   const [isEditingName, setIsEditingName] = useState(false);
   const [tempName, setTempName] = useState("");
   const [isSavingName, setIsSavingName] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
 
   const handleStartRename = () => {
     // Extraer el nombre limpio omitiendo el sufijo de IP o etiqueta del nodo en paréntesis
@@ -338,18 +343,56 @@ const CameraControlCard = ({ camera }) => {
 
   return (
     <Box
+      position="relative"
       borderWidth="1px"
-      borderColor="nvr.border.default"
+      borderColor={isNodeOffline ? "red.500" : "nvr.border.default"}
       borderRadius="xl"
       p={2}
       bg="nvr.bg.card"
+      opacity={isNodeOffline ? 0.75 : 1}
       transition="all 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
       _hover={{
-        borderColor: "nvr.border.interactive",
+        borderColor: isNodeOffline ? "red.400" : "nvr.border.interactive",
       }}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
     >
+      {isNodeOffline && (
+        <Box
+          position="absolute"
+          top={0}
+          left={0}
+          right={0}
+          bottom={0}
+          bg="rgba(15, 23, 42, 0.75)"
+          backdropFilter="blur(3px)"
+          borderRadius="xl"
+          display="flex"
+          flexDirection="column"
+          alignItems="center"
+          justifyContent="center"
+          zIndex={10}
+          p={3}
+          textAlign="center"
+        >
+          <Text
+            fontWeight="bold"
+            fontSize="xs"
+            color="red.400"
+            className="pulse-offline-text"
+            display="flex"
+            alignItems="center"
+            gap={1.5}
+            mb={1}
+            style={{
+              textShadow: "0 0 10px rgba(239, 68, 68, 0.4)"
+            }}
+          >
+            ⚠️ Mini-PC fuera de línea
+          </Text>
+          <Text fontSize="10px" color="gray.300">
+            Nodo {camera.nodeIp} desconectado
+          </Text>
+        </Box>
+      )}
       {isEditingName ? (
         <HStack w="full" gap={1.5} mb={2}>
           <Input
@@ -407,22 +450,6 @@ const CameraControlCard = ({ camera }) => {
           >
             {cameraNumber ? `#${cameraNumber} - ` : ""}{camera.name || formatDeviceName(camera.dev)}
           </Text>
-          {camera.persistent_path && isHovered && (
-            <Tooltip content="Renombrar cámara" showArrow>
-              <IconButton
-                size="2xs"
-                h="18px"
-                w="18px"
-                variant="ghost"
-                color="nvr.text.secondary"
-                _hover={{ color: "blue.600", bg: "blackAlpha.100" }}
-                aria-label="Renombrar cámara"
-                onClick={handleStartRename}
-              >
-                <Pencil size={10} />
-              </IconButton>
-            </Tooltip>
-          )}
         </HStack>
       )}
 
@@ -449,6 +476,28 @@ const CameraControlCard = ({ camera }) => {
           >
             {camera.streaming ? "Transmitiendo" : "En espera"}
           </Button>
+
+          {camera.persistent_path && (
+            <Tooltip content="Renombrar cámara" showArrow>
+              <span style={{ display: "inline-block" }}>
+                <IconButton
+                  size="xs"
+                  variant="outline"
+                  colorPalette="gray"
+                  borderColor="nvr.border.default"
+                  aria-label="Renombrar cámara"
+                  transition="all 0.2s"
+                  _hover={{
+                    bg: "nvr.bg.muted",
+                    borderColor: "nvr.border.interactive",
+                  }}
+                  onClick={handleStartRename}
+                >
+                  <Pencil size={14} />
+                </IconButton>
+              </span>
+            </Tooltip>
+          )}
 
           <Popover.Root portalled={true} unmountOnExit={false} positioning={{ placement: "right-start", gutter: 8 }}>
             <Tooltip content="Ajustes de transmisión" showArrow>
@@ -516,6 +565,7 @@ const CameraControlCard = ({ camera }) => {
             size="xs"
             buttonProps={{ disabled: isToggling }}
             positioning={{ placement: "right-start", gutter: 8 }}
+            cameraNumber={cameraNumber}
           />
 
           <Popover.Root portalled={true} unmountOnExit={true}>

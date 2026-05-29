@@ -23,12 +23,12 @@ import {
   RotateCw,
   FlipHorizontal,
   FlipVertical,
+  SlidersHorizontal,
 } from "lucide-react";
 import { useDispatch } from "react-redux";
 import { togglePtzOverlay } from "../store/slices/cameraSlice";
 import PlayerButton from "./ui/PlayerButton";
 import { StreamSettings } from "./StreamSettings.jsx";
-import { UvcControlPanel } from "./UvcControlPanel.jsx";
 
 /**
  * Componente que compacta los 9 controles del reproductor WebRTC
@@ -42,6 +42,7 @@ export const CompactPlayerControls = ({
   isToggling,
   isStreamSettingsOpen,
   setIsStreamSettingsOpen,
+  isUvcSettingsOpen,
   setIsUvcSettingsOpen,
   isOrientationOpen,
   setIsOrientationOpen,
@@ -111,17 +112,16 @@ export const CompactPlayerControls = ({
 
       {/* 2. AJUSTES DE VIDEO (UVC) */}
       {camera && (
-        <UvcControlPanel
-          key={`uvc-${camera.dev}-${isFullscreen}`}
-          cameraDev={camera.dev}
-          size="xs"
-          variant="ghost"
-          buttonProps={{
-            _hover: { bg: "blackAlpha.100" },
-          }}
-          onOpenChange={setIsUvcSettingsOpen}
-          portalContainer={isFullscreen ? containerRef : undefined}
-        />
+        <PlayerButton
+          tooltip="Ajustes de video"
+          ariaLabel="Ajustes de video"
+          onClick={() => setIsUvcSettingsOpen(!isUvcSettingsOpen)}
+          color={isUvcSettingsOpen ? "blue.600" : "gray.700"}
+          bg={isUvcSettingsOpen ? "rgba(37, 99, 235, 0.08)" : "transparent"}
+          _hover={{ bg: "blackAlpha.100" }}
+        >
+          <SlidersHorizontal size={14} />
+        </PlayerButton>
       )}
 
       {/* 3. AJUSTES DE TRANSMISIÓN */}
@@ -142,7 +142,7 @@ export const CompactPlayerControls = ({
               <Settings size={14} />
             </Popover.Trigger>
           </PlayerButton>
-          <Portal container={isFullscreen ? containerRef : undefined}>
+          <Portal container={isFullscreen ? containerRef : (typeof document !== 'undefined' && document.getElementById("nvr-videowall") ? { current: document.getElementById("nvr-videowall") } : undefined)}>
             <Popover.Positioner zIndex={1600}>
               <Popover.Content
                 bg="white"
@@ -201,7 +201,7 @@ export const CompactPlayerControls = ({
             <ZoomIn size={14} />
           </Popover.Trigger>
         </PlayerButton>
-        <Portal container={isFullscreen ? containerRef : undefined}>
+        <Portal container={isFullscreen ? containerRef : (typeof document !== 'undefined' && document.getElementById("nvr-videowall") ? { current: document.getElementById("nvr-videowall") } : undefined)}>
           <Popover.Positioner zIndex={1600}>
             <Popover.Content
               bg="white"
@@ -285,7 +285,7 @@ export const CompactPlayerControls = ({
               <RotateCw size={14} />
             </Popover.Trigger>
           </PlayerButton>
-          <Portal container={isFullscreen ? containerRef : undefined}>
+          <Portal container={isFullscreen ? containerRef : (typeof document !== 'undefined' && document.getElementById("nvr-videowall") ? { current: document.getElementById("nvr-videowall") } : undefined)}>
             <Popover.Positioner zIndex={1600}>
               <Popover.Content
                 bg="white"
@@ -419,7 +419,7 @@ export const CompactPlayerControls = ({
               )}
             </Popover.Trigger>
           </PlayerButton>
-          <Portal container={isFullscreen ? containerRef : undefined}>
+          <Portal container={isFullscreen ? containerRef : (typeof document !== 'undefined' && document.getElementById("nvr-videowall") ? { current: document.getElementById("nvr-videowall") } : undefined)}>
             <Popover.Positioner zIndex={1600}>
               <Popover.Content
                 bg="white"

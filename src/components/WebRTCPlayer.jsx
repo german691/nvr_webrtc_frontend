@@ -8,12 +8,14 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   toggleStream,
   setPtzOverlay,
+  setActiveUvcSettingsDev,
 } from "../store/slices/cameraSlice";
 import { useVideoZoom } from "../hooks/useVideoZoom";
 import { useLocalRecorder } from "../hooks/useLocalRecorder";
 import { getSortedResolutions, getSortedFps } from "../utils/camera.js";
 import { PtzJoystick } from "./PtzJoystick.jsx";
 import CompactPlayerControls from "./CompactPlayerControls.jsx";
+import { UvcControlPanel } from "./UvcControlPanel.jsx";
 
 /**
  * Componente Reproductor WebRTC en tiempo real.
@@ -47,7 +49,13 @@ export const WebRTCPlayer = ({ url, camera }) => {
 
   // Popover open states to manage controls visibility in fullscreen
   const [isStreamSettingsOpen, setIsStreamSettingsOpen] = useState(false);
-  const [isUvcSettingsOpen, setIsUvcSettingsOpen] = useState(false);
+  const activeUvcSettingsDev = useSelector(
+    (state) => state.cameras.activeUvcSettingsDev,
+  );
+  const isUvcSettingsOpen = activeUvcSettingsDev === camera?.dev;
+  const setIsUvcSettingsOpen = (isOpen) => {
+    dispatch(setActiveUvcSettingsDev(isOpen ? camera?.dev : null));
+  };
   const [isOrientationOpen, setIsOrientationOpen] = useState(false);
   const [isToggling, setIsToggling] = useState(false);
 
@@ -493,6 +501,16 @@ export const WebRTCPlayer = ({ url, camera }) => {
           onClose={() =>
             dispatch(setPtzOverlay({ dev: camera.dev, open: false }))
           }
+        />
+      )}
+
+      {isUvcSettingsOpen && camera && (
+        <UvcControlPanel
+          cameraDev={camera.dev}
+          isInline={true}
+          onOpenChange={setIsUvcSettingsOpen}
+          portalContainer={isFullscreen ? containerRef : undefined}
+          cameraNumber={cameraNumber}
         />
       )}
 

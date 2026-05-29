@@ -212,4 +212,43 @@ body {
   animation: modal-content-scale-out 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+/* Animaciones para estados offline y fuera de línea */
+@keyframes pulse-offline {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.pulse-offline-icon {
+  animation: pulse-offline 2s infinite ease-in-out;
+}
+
+@keyframes pulse-offline-text {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.pulse-offline-text {
+  animation: pulse-offline-text 2s infinite ease-in-out;
+}
+
 
